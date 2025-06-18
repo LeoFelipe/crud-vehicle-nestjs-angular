@@ -1,0 +1,12 @@
+import { DomainEvent } from './domain-event';
+import { Veiculo } from '../entities/veiculo';
+
+export class VeiculoAtualizadoEvent implements DomainEvent {
+  public readonly occurredOn: Date;
+  public readonly eventName: string;
+
+  constructor(public readonly veiculo: Veiculo) {
+    this.occurredOn = new Date();
+    this.eventName = 'VeiculoAtualizado';
+  }
+} 
