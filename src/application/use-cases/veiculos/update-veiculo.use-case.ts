@@ -4,6 +4,7 @@ import { VeiculoResponseDto } from '../../../presentation/responses/veiculo-resp
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
 import { UpdateVeiculoRequestDto } from '../../../presentation/requests/update-veiculo-request.dto';
 import { VeiculoMapper } from '../../mappers/veiculo.mapper';
+import { BusinessException } from '../../../presentation/exceptions/business.exception';
 
 @Injectable()
 export class UpdateVeiculoUseCase {
@@ -58,7 +59,7 @@ export class UpdateVeiculoUseCase {
       }
 
       if (conflictFields.size > 0) {
-        throw new Error(
+        throw new BusinessException(
           `Já existe um veículo com este(s) campo(s): ${Array.from(
             conflictFields,
           ).join(', ')}`,

@@ -11,6 +11,7 @@ import {
   ValidationPipe,
   UsePipes,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreateVeiculoUseCase } from '../../application/use-cases/veiculos/create-veiculo.use-case';
 import { UpdateVeiculoUseCase } from '../../application/use-cases/veiculos/update-veiculo.use-case';
 import { DeleteVeiculoUseCase } from '../../application/use-cases/veiculos/delete-veiculo.use-case';
@@ -20,6 +21,7 @@ import { VeiculoResponseDto } from '../responses/veiculo-response.dto';
 import { CreateVeiculoRequestDto } from '../requests/create-veiculo-request.dto';
 import { UpdateVeiculoRequestDto } from '../requests/update-veiculo-request.dto';
 
+@ApiTags('Veículos')
 @Controller('veiculos')
 @UsePipes(new ValidationPipe({ transform: true }))
 export class VeiculoController {
@@ -32,6 +34,7 @@ export class VeiculoController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Criar novo veículo' })
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateVeiculoRequestDto,
@@ -40,18 +43,21 @@ export class VeiculoController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Listar todos os veículos' })
   @HttpCode(HttpStatus.OK)
   async findAll(): Promise<VeiculoResponseDto[]> {
     return this.getVeiculosUseCase.execute();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Buscar veículo por ID' })
   @HttpCode(HttpStatus.OK)
   async findById(@Param('id') id: string): Promise<VeiculoResponseDto> {
     return this.getVeiculoByIdUseCase.execute(id);
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Atualizar veículo' })
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') id: string,
@@ -61,6 +67,7 @@ export class VeiculoController {
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Deletar veículo' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string): Promise<void> {
     await this.deleteVeiculoUseCase.execute(id);

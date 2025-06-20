@@ -6,6 +6,7 @@ import { BaseRepository } from './base-repository';
 import { IEventBus } from '../../application/event-bus/event-bus.interface';
 import { StatusVeiculoValue } from '../../domain/value-objects/status-veiculo';
 import { EVENT_BUS } from '../config/injection-tokens';
+import { BusinessException } from '../../presentation/exceptions/business.exception';
 
 @Injectable()
 export class VeiculoRepositoryImpl
@@ -110,7 +111,7 @@ export class VeiculoRepositoryImpl
       case 'em desativação':
         return 'EM_DESATIVACAO';
       default:
-        throw new Error('Status inválido');
+        throw new BusinessException('Status inválido');
     }
   }
 
@@ -125,7 +126,7 @@ export class VeiculoRepositoryImpl
       case 'EM_DESATIVACAO':
         return 'em desativação';
       default:
-        throw new Error('Status inválido');
+        throw new BusinessException('Status inválido');
     }
   }
 

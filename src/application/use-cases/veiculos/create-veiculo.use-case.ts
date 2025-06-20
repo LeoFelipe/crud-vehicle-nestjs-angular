@@ -4,6 +4,7 @@ import { VeiculoMapper } from '../../mappers/veiculo.mapper';
 import { IVeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
 import { CreateVeiculoRequestDto } from '../../../presentation/requests/create-veiculo-request.dto';
+import { BusinessException } from '../../../presentation/exceptions/business.exception';
 
 @Injectable()
 export class CreateVeiculoUseCase {
@@ -42,7 +43,7 @@ export class CreateVeiculoUseCase {
         if (veiculo.renavam === dto.renavam) conflictFields.add('renavam');
       }
       if (conflictFields.size > 0) {
-        throw new Error(
+        throw new BusinessException(
           `Já existe um veículo com este(s) campo(s): ${Array.from(conflictFields).join(', ')}`,
         );
       }

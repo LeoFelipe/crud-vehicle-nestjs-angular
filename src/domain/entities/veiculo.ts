@@ -6,6 +6,7 @@ import {
 import { VeiculoCriadoEvent } from '../events/veiculo-criado.event';
 import { VeiculoAtualizadoEvent } from '../events/veiculo-atualizado.event';
 import { VeiculoEmDesativacaoEvent } from '../events/veiculo-em-desativacao.event';
+import { BusinessException } from '../../presentation/exceptions/business.exception';
 
 interface VeiculoProps {
   placa: string;
@@ -93,7 +94,7 @@ export class Veiculo extends BaseEntity<VeiculoProps> {
 
   public solicitarDesativacao(): void {
     if (!this.props.status.estaAtivo()) {
-      throw new Error('Veículo só pode ser colocado em desativação se estiver ATIVO');
+      throw new BusinessException('Veículo só pode ser colocado em desativação se estiver ATIVO');
     }
     this.props.status = new StatusVeiculoValue(StatusVeiculo.EM_DESATIVACAO);
     this.props.updatedAt = new Date();
@@ -102,7 +103,7 @@ export class Veiculo extends BaseEntity<VeiculoProps> {
 
   public desativar(): void {
     if (!this.props.status.podeSerDesativado()) {
-      throw new Error('Veículo só pode ser desativado se estiver EM_DESATIVACAO');
+      throw new BusinessException('Veículo só pode ser desativado se estiver EM_DESATIVACAO');
     }
     this.props.status = new StatusVeiculoValue(StatusVeiculo.DESATIVADO);
     this.props.updatedAt = new Date();
@@ -110,7 +111,7 @@ export class Veiculo extends BaseEntity<VeiculoProps> {
 
   public ativar(): void {
     if (!this.props.status.podeSerAtivado()) {
-      throw new Error('Veículo não pode ser ativado no status atual');
+      throw new BusinessException('Veículo não pode ser ativado no status atual');
     }
     this.props.status = new StatusVeiculoValue(StatusVeiculo.ATIVO);
     this.props.updatedAt = new Date();
@@ -118,29 +119,29 @@ export class Veiculo extends BaseEntity<VeiculoProps> {
 
   private validate(): void {
     if (!this.props.placa || this.props.placa.length < 6) {
-      throw new Error('Placa deve ter pelo menos 6 caracteres');
+      throw new BusinessException('Placa deve ter pelo menos 6 caracteres');
     }
     if (!this.props.chassi || this.props.chassi.length !== 17) {
-      throw new Error('Chassi deve ter exatamente 17 caracteres');
+      throw new BusinessException('Chassi deve ter exatamente 17 caracteres');
     }
     if (!this.props.renavam || this.props.renavam.length !== 11) {
-      throw new Error('Renavam deve ter exatamente 11 dígitos');
+      throw new BusinessException('Renavam deve ter exatamente 11 dígitos');
     }
     if (!this.props.modelo || this.props.modelo.length < 2) {
-      throw new Error('Modelo deve ter pelo menos 2 caracteres');
+      throw new BusinessException('Modelo deve ter pelo menos 2 caracteres');
     }
     if (!this.props.marca || this.props.marca.length < 2) {
-      throw new Error('Marca deve ter pelo menos 2 caracteres');
+      throw new BusinessException('Marca deve ter pelo menos 2 caracteres');
     }
     if (
       !this.props.ano ||
       this.props.ano < 1900 ||
       this.props.ano > new Date().getFullYear() + 1
     ) {
-      throw new Error('Ano deve ser válido');
+      throw new BusinessException('Ano deve ser válido');
     }
     if (new Date().getFullYear() - this.props.ano > 3) {
-      throw new Error('Idade do veículo não pode ser maior que 3 anos');
+      throw new BusinessException('Idade do veículo não pode ser maior que 3 anos');
     }
   }
 }

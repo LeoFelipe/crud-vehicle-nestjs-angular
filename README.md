@@ -23,19 +23,27 @@
 </p>
 
 <p align="center">
-  <strong>Sistema de gerenciamento de veículos desenvolvido em NestJS seguindo os princípios da Clean Architecture.</strong>
+  📝 Licença: Este projeto está sob a licença MIT.
 </p>
 
+<p align="center">
+  <strong>Sistema de gerenciamento de veículos desenvolvido em NestJS seguindo os princípios da Clean Architecture.</strong>
+</p>
 
 ## 🚗 Funcionalidades
 
 - **CRUD completo** de veículos (Create, Read, Update, Delete)
-- **Validação robusta** de dados de entrada
+- **Validação robusta** de dados de entrada (DTOs com class-validator)
 - **Clean Architecture** com separação clara de responsabilidades
 - **Eventos de domínio** para desacoplamento
 - **Cache em memória** para performance
-- **RabbitMQ** para mensageria
+- **RabbitMQ real** para mensageria (publicação e consumo de eventos)
+- **PostgreSQL** como banco de dados relacional
+- **Documentação automática da API com Swagger**
+- **Tratamento padronizado de erros de validação e negócio**
 - **Testes automatizados** com alta cobertura
+- **Containerização com Docker e Docker Compose**
+- **Consumers de eventos como serviços independentes (microserviços parciais)**
 
 ## 🏗️ Arquitetura
 
@@ -46,7 +54,7 @@ src/
 │   ├── events/
 │   ├── repositories/
 │   └── value-objects/
-├── application/      # Casos de uso, mapeadores
+├── application/      # Casos de uso, mapeadores, event-bus
 │   ├── use-cases/
 │   ├── mappers/
 │   └── event-bus/
@@ -54,37 +62,46 @@ src/
 │   ├── database/
 │   ├── cache/
 │   └── messaging/
-├── presentation/     # Controllers, DTOs de request/response, validações
+├── presentation/     # Controllers, DTOs de request/response, validações, filters, exceptions
 │   ├── controllers/
 │   ├── requests/
 │   ├── responses/
-│   └── validators/
+│   ├── validators/
+│   ├── filters/      # Exception filters globais
+│   └── exceptions/   # Exceções customizadas de negócio
 ```
+- **Exception Filter global** para padronização de respostas de erro
+- **Consumers de eventos** (ativação/desativação) como serviços separados no Docker Compose
 
 ## 🛠️ Tecnologias
 
 - **NestJS** - Framework Node.js
 - **TypeScript** - Linguagem de programação
-- **SQLite** - Banco de dados (em memória)
+- **PostgreSQL** - Banco de dados relacional
+- **RabbitMQ** - Mensageria real
 - **Jest** - Framework de testes
 - **class-validator** - Validação de dados
-- **RabbitMQ** - Mensageria
-
-## 📦 Instalação
-
-```bash
-npm install
-```
+- **Swagger** (`@nestjs/swagger`, `swagger-ui-express`) - Documentação automática da API
+- **Docker & Docker Compose** - Containerização e orquestração
 
 ## 🚀 Execução
 
-```bash
-# Desenvolvimento
-npm run start:dev
+### Rodando com Docker Compose
 
-# Produção
-npm run start:prod
+```bash
+docker-compose up --build
 ```
+- A aplicação estará disponível em: http://localhost:3000
+- A documentação Swagger estará em: http://localhost:3000/api
+- O painel do RabbitMQ estará em: http://localhost:15672 (usuário/senha: guest/guest)
+
+### Rodando localmente (sem Docker)
+
+```bash
+npm run start:dev
+```
+
+> **Observação:** O projeto depende de PostgreSQL e RabbitMQ. Recomenda-se usar o Docker Compose para facilitar o setup do ambiente.
 
 ## 🧪 Testes
 
@@ -92,14 +109,6 @@ O projeto possui uma estratégia completa de testes com diferentes níveis de co
 
 ### 1. Testes Unitários
 Testam componentes isolados (entidades, casos de uso, mapeadores).
-
-```bash
-# Executar todos os testes unitários
-npm run test
-
-# Executar testes unitários com coverage
-npm run test:cov
-```
 
 **Exemplos de testes unitários:**
 - ✅ Entidade `Veiculo` (validações de domínio)
@@ -109,10 +118,6 @@ npm run test:cov
 ### 2. Testes de Integração
 Testam a integração entre componentes (controllers + casos de uso + validações).
 
-```bash
-# Executar testes de integração
-npm run test:integration
-```
 
 **Exemplos de testes de integração:**
 - ✅ Controllers (fluxo HTTP completo)
@@ -120,6 +125,14 @@ npm run test:integration
 - ✅ Status HTTP corretos (200, 201, 400, 404, 500)
 - ✅ Estrutura de resposta JSON
 - ✅ Integração entre camadas (Presentation ↔ Application)
+
+```bash
+# Executar todos os testes unitários
+npm run test
+
+# Executar testes unitários com coverage
+npm run test:cov
+```
 
 ## 📋 Endpoints da API
 
@@ -168,29 +181,27 @@ Content-Type: application/json
 
 ## 📨 Mensageria com RabbitMQ
 
-O projeto utiliza RabbitMQ para publicação e consumo real de mensagens em filas para eventos de domínio.
+O projeto utiliza **RabbitMQ real** para publicação e consumo de eventos de domínio.
 
-### Variáveis de ambiente
-
-- `RABBITMQ_URL`: URL de conexão do RabbitMQ (default: `amqp://localhost`)
+- **Publicação de eventos:** A aplicação publica eventos de domínio (ex: VeiculoCriado, VeiculoEmDesativacao) nas filas do RabbitMQ.
+- **Consumers como microserviços parciais:** Os consumers de ativação e desativação de veículos rodam como serviços separados no Docker Compose, processando eventos de suas respectivas filas.
+- **Variáveis de ambiente:**
+  - `RABBITMQ_URL`: URL de conexão do RabbitMQ (default: `amqp://localhost`)
 
 ### Executando os Consumers
 
 Os consumers processam eventos de ativação e desativação de veículos publicados nas filas.
 
-#### Ativar veículo (consumer):
+- **Ativar veículo (consumer):**
+  ```sh
+  node dist/infrastructure/messaging/consume-veiculo-em-ativacao.js
+  ```
+- **Desativar veículo (consumer):**
+  ```sh
+  node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js
+  ```
 
-```sh
-node dist/infrastructure/messaging/consume-veiculo-em-ativacao.js
-```
-
-#### Desativar veículo (consumer):
-
-```sh
-node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js
-```
-
-> **Dica:** Rode cada consumer em um terminal separado.
+> **Dica:** Rode cada consumer em um terminal separado ou utilize o Docker Compose, que já sobe ambos automaticamente.
 
 ## 🗂️ Organização dos DTOs
 
@@ -249,10 +260,6 @@ Coverage:    95%+
 - **Validações**: class-validator decorators
 
 
-## 📝 Licença
-
-Este projeto está sob a licença MIT.
-
 ## 🐳 Docker Compose
 
 Para rodar toda a stack (aplicação, RabbitMQ e consumers) via Docker Compose:
@@ -281,3 +288,34 @@ docker-compose logs -f consumer-desativacao
 ```
 
 Não é necessário rodar manualmente os scripts de consumer.
+
+## 📑 Tratamento de Erros
+
+Todas as respostas de erro seguem o formato padronizado:
+
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "response": [
+    "mensagem de erro 1",
+    "mensagem de erro 2"
+  ]
+}
+```
+
+- **Validações de DTO:** retornam 400 com lista de erros de validação.
+- **Erros de negócio:** retornam 400 com lista de erros de regra de negócio.
+- **Erros internos:** retornam 500 com mensagem genérica.
+
+## 📖 Swagger - Documentação da API
+
+A documentação interativa da API está disponível em:
+
+```
+http://localhost:3000/api
+```
+
+- Visualize e teste todos os endpoints.
+- Veja exemplos de request/response e schemas dos DTOs.
+- A documentação é gerada automaticamente a partir dos controllers e DTOs decorados com `@nestjs/swagger`.
