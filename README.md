@@ -30,6 +30,30 @@
   <strong>Sistema de gerenciamento de veículos desenvolvido em NestJS seguindo os princípios da Clean Architecture.</strong>
 </p>
 
+## 🎯 Sobre este projeto
+
+Este projeto foi desenvolvido como parte do processo seletivo para a vaga de desenvolvedor, conforme os requisitos propostos no teste técnico.
+
+### Requisitos atendidos
+
+- **Backend em Node.js com NestJS:**  O projeto utiliza o framework NestJS, seguindo boas práticas de modularização, injeção de dependências e arquitetura limpa.
+- **CRUD de veículos:**  Implementação completa do CRUD para veículos, com os campos: id, placa, chassi, renavam, modelo, marca e ano. Os dados são persistidos em banco de dados PostgreSQL.
+- **Recursos RESTful:**  Todos os endpoints seguem o padrão REST, permitindo criar, listar, buscar por ID, atualizar e deletar veículos.
+- **Testes automatizados com Jest:**  O projeto possui testes unitários e de integração para os principais casos de uso, garantindo a qualidade e a robustez da aplicação.
+- **Documentação automática da API:**  A API está documentada com Swagger, disponível em `/api`, facilitando a visualização e o teste dos endpoints.
+- **Containerização com Docker:**  Toda a aplicação pode ser executada via Docker Compose, incluindo banco de dados PostgreSQL e mensageria RabbitMQ.
+- **Mensageria real com RabbitMQ:**  Eventos de domínio são publicados e consumidos via RabbitMQ, com consumers rodando como serviços independentes (microserviços parciais).
+- **Tratamento padronizado de erros:**  Todas as respostas de erro seguem um padrão único, facilitando o consumo da API por clientes.
+- **Código público:**  O projeto está disponível em repositório público no GitHub.
+
+### Diferenciais implementados
+
+- Clean Architecture e separação clara de camadas.
+- Exception Filter global para padronização de erros.
+- Testes de endpoints (integração) e cobertura de código.
+- Uso real de RabbitMQ para mensageria.
+- Documentação Swagger gerada automaticamente.
+
 ## 🚗 Funcionalidades
 
 - **CRUD completo** de veículos (Create, Read, Update, Delete)
@@ -116,8 +140,7 @@ Testam componentes isolados (entidades, casos de uso, mapeadores).
 - ✅ Mapeadores (DTO ↔ Entidade)
 
 ### 2. Testes de Integração
-Testam a integração entre componentes (controllers + casos de uso + validações).
-
+Testam a integração entre componentes (controllers + casos de uso + validações), incluindo testes de endpoints HTTP.
 
 **Exemplos de testes de integração:**
 - ✅ Controllers (fluxo HTTP completo)
@@ -126,11 +149,15 @@ Testam a integração entre componentes (controllers + casos de uso + validaçõ
 - ✅ Estrutura de resposta JSON
 - ✅ Integração entre camadas (Presentation ↔ Application)
 
-```bash
-# Executar todos os testes unitários
-npm run test
+> **Observação:** Todos os testes (unitários e de integração) são executados juntos pelo comando padrão:
 
-# Executar testes unitários com coverage
+```bash
+npm run test
+```
+
+Para cobertura de testes, utilize:
+
+```bash
 npm run test:cov
 ```
 
