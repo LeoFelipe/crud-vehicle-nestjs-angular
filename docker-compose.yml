@@ -29,7 +29,7 @@ services:
       retries: 10
 
   app:
-    build: .
+    build: ./backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
     command: sh -c "npx prisma migrate deploy && node dist/main.js"
 
   consumer-ativacao:
-    build: .
+    build: ./backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,7 +55,7 @@ services:
     command: sh -c "npx prisma migrate deploy && node dist/infrastructure/messaging/consume-veiculo-em-ativacao.js"
 
   consumer-desativacao:
-    build: .
+    build: ./backend
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,4 +64,11 @@ services:
     environment:
       RABBITMQ_URL: amqp://rabbitmq
       DATABASE_URL: postgres://devuser:devpass@postgres:5432/devdb
-    command: sh -c "npx prisma migrate deploy && node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js" 
+    command: sh -c "npx prisma migrate deploy && node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - '4200:80'
+    depends_on:
+      - app 
