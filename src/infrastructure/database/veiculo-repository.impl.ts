@@ -33,6 +33,7 @@ export class VeiculoRepositoryImpl
         updatedAt: veiculo.updatedAt,
       },
     });
+
     await super.dispatchEvents(veiculo);
   }
 

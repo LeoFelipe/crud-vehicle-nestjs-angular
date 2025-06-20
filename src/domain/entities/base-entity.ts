@@ -1,4 +1,5 @@
 import { IDomainEvent } from '../events/domain-event';
+import { randomUUID } from 'crypto';
 
 export abstract class BaseEntity<T> {
   protected readonly _id: string;
@@ -6,7 +7,7 @@ export abstract class BaseEntity<T> {
   private readonly _events: IDomainEvent[] = [];
 
   constructor(props: T, id?: string) {
-    this._id = id || crypto.randomUUID();
+    this._id = id || randomUUID();
     this.props = props;
   }
 

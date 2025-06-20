@@ -10,28 +10,13 @@ export class CreateVeiculoUseCase {
   constructor(
     @Inject(VEICULO_REPOSITORY)
     private readonly veiculoRepository: IVeiculoRepository,
-    private readonly logger: Logger,
   ) {}
 
   async execute(dto: CreateVeiculoRequestDto): Promise<VeiculoResponseDto> {
-    // 1. Validações do DTO (já feitas pelo class-validator)
-
-    // 2. Verificar se já existe veículo com placa, chassi ou renavam
     await this.checkForConflicts(dto);
-
-    // 3. Mapear DTO para Entidade
-    const id = this.generateId();
     const veiculo = VeiculoMapper.toDomain(dto);
 
-    // 4. Validações de Negócio (já feitas na entidade)
-
-    // 5. Adicionar Event de Veículo Criado (já adicionado na entidade)
-
-    // 6. Salvar o Veículo no banco
     await this.veiculoRepository.save(veiculo);
-
-    // 7. Quando o veículo for salvo, lançar os eventos que foram adicionados
-    // (será feito pelo repository/notifier)
 
     return VeiculoMapper.toResponseDto(veiculo);
   }
@@ -62,9 +47,5 @@ export class CreateVeiculoUseCase {
         );
       }
     }
-  }
-
-  private generateId(): string {
-    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   }
 }

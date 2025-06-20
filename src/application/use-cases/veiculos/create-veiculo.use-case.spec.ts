@@ -3,7 +3,6 @@ import { IVeiculoRepository } from '../../../domain/repositories/veiculo-reposit
 import { CreateVeiculoUseCase } from './create-veiculo.use-case';
 import { CreateVeiculoRequestDto } from '../../../presentation/requests/create-veiculo-request.dto';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
-import { Logger } from '@nestjs/common';
 
 describe('CreateVeiculoUseCase', () => {
   let useCase: CreateVeiculoUseCase;
@@ -35,7 +34,6 @@ describe('CreateVeiculoUseCase', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateVeiculoUseCase,
-        Logger,
         {
           provide: VEICULO_REPOSITORY,
           useValue: {

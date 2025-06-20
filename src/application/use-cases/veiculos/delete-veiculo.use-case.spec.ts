@@ -75,7 +75,10 @@ describe('DeleteVeiculoUseCase', () => {
         status: { 
           getValor: () => 'ativo',
           podeSerDesativado: () => false 
-        }
+        },
+        solicitarDesativacao: jest.fn(() => {
+          throw new Error('Este veículo não pode ser deletado pois não está no status "em desativação"');
+        })
       };
       mockVeiculoRepository.findById.mockResolvedValue(existingVeiculo as any);
 

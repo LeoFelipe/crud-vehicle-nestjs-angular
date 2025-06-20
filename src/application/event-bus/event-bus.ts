@@ -1,10 +1,9 @@
 import { IDomainEvent } from '../../domain/events/domain-event';
 import { IEventBus } from './event-bus.interface';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class EventBus implements IEventBus {
-  private readonly logger = new Logger(EventBus.name);
   private handlers: {
     [eventName: string]: ((event: any) => Promise<void>)[];
   } = {};
@@ -14,7 +13,6 @@ export class EventBus implements IEventBus {
     const handlers = this.handlers[eventName];
 
     if (handlers) {
-      this.logger.log(`Handling event: ${eventName}`);
       await Promise.all(handlers.map(handler => handler(event)));
     }
   }
@@ -24,6 +22,6 @@ export class EventBus implements IEventBus {
       this.handlers[eventName] = [];
     }
     this.handlers[eventName].push(handler);
-    this.logger.log(`Registered handler for event: ${eventName}`);
+    console.log(`Registered handler for event: ${eventName}`);
   }
 }

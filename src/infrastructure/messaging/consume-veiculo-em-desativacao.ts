@@ -8,20 +8,21 @@ async function main() {
   const repo = new VeiculoRepositoryImpl({} as any); // Injetar EventBus se necessário
 
   await consumer.consume('veiculo-em-desativacao', async (event) => {
-    const veiculoId = event.veiculo?.id || event.veiculo?.veiculo?.id;
-    if (!veiculoId) {
+    if (!event.veiculoId) {
       console.error('Mensagem sem ID de veículo:', event);
       return;
     }
-    const veiculo = await repo.findById(veiculoId);
+    
+    const veiculo = await repo.findById(event.veiculoId);
     if (!veiculo) {
-      console.error('Veículo não encontrado:', veiculoId);
+      console.error('Veículo não encontrado:', event.veiculoId);
       return;
     }
+
     try {
       veiculo.desativar();
       await repo.update(veiculo);
-      console.log('Veículo desativado:', veiculoId);
+      console.log('Veículo desativado:', veiculo.id);
     } catch (err) {
       console.error('Erro ao desativar veículo:', err);
     }

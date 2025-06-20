@@ -4,7 +4,6 @@ import * as amqp from 'amqplib';
 
 export class QueuePublisher implements IQueuePublisher {
   private rabbitUrl: string;
-  private readonly logger = new Logger(QueuePublisher.name);
 
   constructor() {
     this.rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
@@ -21,6 +20,6 @@ export class QueuePublisher implements IQueuePublisher {
     
     await channel.close();
     await conn.close();
-    this.logger.debug(`[RabbitMQ] Publicado na fila "${queue}":`, message);
+    console.log(`[RabbitMQ] Publicado na fila "${queue}":`);
   }
 }

@@ -62,10 +62,10 @@ export class AppModule implements OnModuleInit {
   ) {}
 
   onModuleInit() {
-    this.eventBus.register('VeiculoCriado', (event) =>
+    this.eventBus.register('VeiculoCriadoEvent', (event) =>
       this.veiculoCriadoHandler.handle(event as VeiculoCriadoEvent),
     );
-    this.eventBus.register('VeiculoEmDesativacao', (event) =>
+    this.eventBus.register('VeiculoEmDesativacaoEvent', (event) =>
       this.veiculoEmDesativacaoHandler.handle(
         event as VeiculoEmDesativacaoEvent,
       ),

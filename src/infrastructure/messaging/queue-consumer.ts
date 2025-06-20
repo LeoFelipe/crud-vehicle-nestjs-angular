@@ -14,7 +14,8 @@ export class QueueConsumer {
     const conn = await amqp.connect(this.rabbitUrl);
     const channel = await conn.createChannel();
     await channel.assertQueue(queue, { durable: true });
-    console.log(`[RabbitMQ] Consumindo fila: ${queue}`);
+
+    console.log(`[RabbitMQ] Consumindo fila: ${queue}`);    
     channel.consume(queue, async (msg) => {
       if (msg) {
         const content = JSON.parse(msg.content.toString());
