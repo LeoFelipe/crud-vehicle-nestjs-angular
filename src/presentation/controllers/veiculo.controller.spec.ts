@@ -7,9 +7,9 @@ import { UpdateVeiculoUseCase } from '../../application/use-cases/veiculos/updat
 import { DeleteVeiculoUseCase } from '../../application/use-cases/veiculos/delete-veiculo.use-case';
 import { GetVeiculosUseCase } from '../../application/use-cases/veiculos/get-veiculos.use-case';
 import { GetVeiculoByIdUseCase } from '../../application/use-cases/veiculos/get-veiculo-by-id.use-case';
-import { CreateVeiculoDto } from '../../application/dto/create-veiculo.dto';
-import { UpdateVeiculoDto } from '../../application/dto/update-veiculo.dto';
-import { VeiculoResponseDto } from '../../application/dto/veiculo-response.dto';
+import { VeiculoResponseDto } from '../responses/veiculo-response.dto';
+import { CreateVeiculoRequestDto } from '../requests/create-veiculo-request.dto';
+import { UpdateVeiculoRequestDto } from '../requests/update-veiculo-request.dto';
 
 describe('VeiculoController (e2e)', () => {
   let app: INestApplication;
@@ -20,7 +20,7 @@ describe('VeiculoController (e2e)', () => {
   let getVeiculoByIdUseCase: jest.Mocked<GetVeiculoByIdUseCase>;
 
   const mockDate = new Date('2023-01-01T00:00:00.000Z');
-  
+
   const mockVeiculoResponse: VeiculoResponseDto = {
     id: 'test-id',
     placa: 'ABC1234',
@@ -31,25 +31,25 @@ describe('VeiculoController (e2e)', () => {
     ano: 2023,
     status: 'ativo',
     createdAt: mockDate,
-    updatedAt: mockDate
+    updatedAt: mockDate,
   };
 
-  const validCreateDto: CreateVeiculoDto = {
+  const validCreateDto: CreateVeiculoRequestDto = {
     placa: 'ABC1234',
     chassi: '12345678901234567',
     renavam: '12345678901',
     modelo: 'Civic',
     marca: 'Honda',
-    ano: 2023
+    ano: 2023,
   };
 
-  const validUpdateDto: UpdateVeiculoDto = {
+  const validUpdateDto: UpdateVeiculoRequestDto = {
     placa: 'XYZ5678',
     chassi: '98765432109876543',
     renavam: '98765432109',
     modelo: 'Corolla',
     marca: 'Toyota',
-    ano: 2024
+    ano: 2024,
   };
 
   beforeEach(async () => {
@@ -90,11 +90,13 @@ describe('VeiculoController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ 
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true
-    }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
 
     createVeiculoUseCase = moduleFixture.get(CreateVeiculoUseCase);
     updateVeiculoUseCase = moduleFixture.get(UpdateVeiculoUseCase);
@@ -119,7 +121,9 @@ describe('VeiculoController (e2e)', () => {
       createVeiculoUseCase.execute.mockResolvedValue(mockVeiculoResponse);
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer)
         .post('/veiculos')
         .send(validCreateDto)
         .expect(201);
@@ -135,7 +139,7 @@ describe('VeiculoController (e2e)', () => {
       expect(response.body.status).toBe(mockVeiculoResponse.status);
       expect(response.body.createdAt).toBe(mockDate.toISOString());
       expect(response.body.updatedAt).toBe(mockDate.toISOString());
-      
+
       expect(createVeiculoUseCase.execute).toHaveBeenCalledWith(validCreateDto);
     });
 
@@ -147,11 +151,13 @@ describe('VeiculoController (e2e)', () => {
         renavam: '123', // Muito curto
         modelo: 'A', // Muito curto
         marca: 'H', // Muito curto
-        ano: 1800 // Inválido
+        ano: 1800, // Inválido
       };
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer)
         .post('/veiculos')
         .send(invalidDto)
         .expect(400);
@@ -159,24 +165,26 @@ describe('VeiculoController (e2e)', () => {
       // Verificar se as mensagens de erro contêm os campos esperados
       const errorMessages = response.body.message;
       expect(Array.isArray(errorMessages)).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('placa'))).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('chassi'))).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('renavam'))).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('modelo'))).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('marca'))).toBe(true);
-      expect(errorMessages.some(msg => msg.includes('ano'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('placa'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('chassi'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('renavam'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('modelo'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('marca'))).toBe(true);
+      expect(errorMessages.some((msg) => msg.includes('ano'))).toBe(true);
       expect(createVeiculoUseCase.execute).not.toHaveBeenCalled();
     });
 
     it('deve retornar 400 quando campos obrigatórios estão faltando', async () => {
       // Arrange
       const incompleteDto = {
-        placa: 'ABC1234'
+        placa: 'ABC1234',
         // Faltando outros campos
       };
 
       // Act & Assert
-      await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer)
         .post('/veiculos')
         .send(incompleteDto)
         .expect(400);
@@ -189,7 +197,9 @@ describe('VeiculoController (e2e)', () => {
       createVeiculoUseCase.execute.mockRejectedValue(new Error('Erro interno'));
 
       // Act & Assert
-      await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer)
         .post('/veiculos')
         .send(validCreateDto)
         .expect(500);
@@ -203,9 +213,9 @@ describe('VeiculoController (e2e)', () => {
       getVeiculosUseCase.execute.mockResolvedValue(veiculosList);
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
-        .get('/veiculos')
-        .expect(200);
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer).get('/veiculos').expect(200);
 
       expect(response.body).toHaveLength(1);
       expect(response.body[0].id).toBe(mockVeiculoResponse.id);
@@ -220,9 +230,9 @@ describe('VeiculoController (e2e)', () => {
       getVeiculosUseCase.execute.mockResolvedValue([]);
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
-        .get('/veiculos')
-        .expect(200);
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer).get('/veiculos').expect(200);
 
       expect(response.body).toEqual([]);
     });
@@ -234,7 +244,9 @@ describe('VeiculoController (e2e)', () => {
       getVeiculoByIdUseCase.execute.mockResolvedValue(mockVeiculoResponse);
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer)
         .get('/veiculos/test-id')
         .expect(200);
 
@@ -247,12 +259,14 @@ describe('VeiculoController (e2e)', () => {
 
     it('deve retornar 500 quando veículo não é encontrado', async () => {
       // Arrange
-      getVeiculoByIdUseCase.execute.mockRejectedValue(new Error('Veículo não encontrado'));
+      getVeiculoByIdUseCase.execute.mockRejectedValue(
+        new Error('Veículo não encontrado'),
+      );
 
       // Act & Assert
-      await request(app.getHttpServer())
-        .get('/veiculos/not-found')
-        .expect(500);
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer).get('/veiculos/not-found').expect(500);
     });
   });
 
@@ -263,7 +277,9 @@ describe('VeiculoController (e2e)', () => {
       updateVeiculoUseCase.execute.mockResolvedValue(updatedVeiculo);
 
       // Act & Assert
-      const response = await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      const response = await request(httpServer)
         .put('/veiculos/test-id')
         .send(validUpdateDto)
         .expect(200);
@@ -277,7 +293,10 @@ describe('VeiculoController (e2e)', () => {
       expect(response.body.ano).toBe(validUpdateDto.ano);
       expect(response.body.createdAt).toBe(mockDate.toISOString());
       expect(response.body.updatedAt).toBe(mockDate.toISOString());
-      expect(updateVeiculoUseCase.execute).toHaveBeenCalledWith('test-id', validUpdateDto);
+      expect(updateVeiculoUseCase.execute).toHaveBeenCalledWith(
+        'test-id',
+        validUpdateDto,
+      );
     });
 
     it('deve retornar 400 quando dados de atualização são inválidos', async () => {
@@ -288,11 +307,13 @@ describe('VeiculoController (e2e)', () => {
         renavam: '12345678901',
         modelo: 'Civic',
         marca: 'Honda',
-        ano: 2023
+        ano: 2023,
       };
 
       // Act & Assert
-      await request(app.getHttpServer())
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer)
         .put('/veiculos/test-id')
         .send(invalidUpdateDto)
         .expect(400);
@@ -307,21 +328,23 @@ describe('VeiculoController (e2e)', () => {
       deleteVeiculoUseCase.execute.mockResolvedValue();
 
       // Act & Assert
-      await request(app.getHttpServer())
-        .delete('/veiculos/test-id')
-        .expect(204);
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer).delete('/veiculos/test-id').expect(204);
 
       expect(deleteVeiculoUseCase.execute).toHaveBeenCalledWith('test-id');
     });
 
     it('deve retornar 500 quando veículo não é encontrado para deletar', async () => {
       // Arrange
-      deleteVeiculoUseCase.execute.mockRejectedValue(new Error('Veículo não encontrado'));
+      deleteVeiculoUseCase.execute.mockRejectedValue(
+        new Error('Veículo não encontrado'),
+      );
 
       // Act & Assert
-      await request(app.getHttpServer())
-        .delete('/veiculos/not-found')
-        .expect(500);
+      const httpServer =
+        app.getHttpServer() as unknown as import('http').Server;
+      await request(httpServer).delete('/veiculos/not-found').expect(500);
     });
   });
-}); 
+});

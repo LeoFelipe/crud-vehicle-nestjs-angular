@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit, Inject } from '@nestjs/common';
 import { VeiculoController } from './presentation/controllers/veiculo.controller';
 import { CreateVeiculoUseCase } from './application/use-cases/veiculos/create-veiculo.use-case';
 import { UpdateVeiculoUseCase } from './application/use-cases/veiculos/update-veiculo.use-case';
@@ -8,9 +8,17 @@ import { GetVeiculoByIdUseCase } from './application/use-cases/veiculos/get-veic
 import { VeiculoRepositoryImpl } from './infrastructure/database/veiculo-repository.impl';
 import { QueuePublisher } from './infrastructure/messaging/queue-publisher';
 import { EventBus } from './application/event-bus/event-bus';
-import { EVENT_BUS, VEICULO_REPOSITORY, CACHE, EVENT_NOTIFIER } from './infrastructure/config/injection-tokens';
-import { MemoryCache } from './infrastructure/cache/memory-cache';
-import { RabbitMQNotifier } from './infrastructure/messaging/rabbitmq-notifier';
+import {
+  EVENT_BUS,
+  VEICULO_REPOSITORY,
+  CACHE,
+  QUEUE_PUBLISHER,
+} from './infrastructure/config/injection-tokens';
+import { Cache } from './infrastructure/cache/cache';
+import { VeiculoCriadoHandler } from './application/event-handlers/veiculo-criado.handler';
+import { VeiculoEmDesativacaoHandler } from './application/event-handlers/veiculo-em-desativacao.handler';
+import { VeiculoCriadoEvent } from './domain/events/veiculo-criado.event';
+import { VeiculoEmDesativacaoEvent } from './domain/events/veiculo-em-desativacao.event';
 
 @Module({
   imports: [],
@@ -36,12 +44,31 @@ import { RabbitMQNotifier } from './infrastructure/messaging/rabbitmq-notifier';
     },
     {
       provide: CACHE,
-      useClass: MemoryCache,
+      useClass: Cache,
     },
     {
-      provide: EVENT_NOTIFIER,
-      useClass: RabbitMQNotifier,
+      provide: QUEUE_PUBLISHER,
+      useClass: QueuePublisher,
     },
+    VeiculoCriadoHandler,
+    VeiculoEmDesativacaoHandler,
   ],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(
+    @Inject(EVENT_BUS) private readonly eventBus: EventBus,
+    private readonly veiculoCriadoHandler: VeiculoCriadoHandler,
+    private readonly veiculoEmDesativacaoHandler: VeiculoEmDesativacaoHandler,
+  ) {}
+
+  onModuleInit() {
+    this.eventBus.register('VeiculoCriado', (event) =>
+      this.veiculoCriadoHandler.handle(event as VeiculoCriadoEvent),
+    );
+    this.eventBus.register('VeiculoEmDesativacao', (event) =>
+      this.veiculoEmDesativacaoHandler.handle(
+        event as VeiculoEmDesativacaoEvent,
+      ),
+    );
+  }
+}

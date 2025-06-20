@@ -1,242 +1,148 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import * as sqlite3 from 'sqlite3';
-import { VeiculoRepository } from '../../domain/repositories/veiculo-repository.interface';
+import prisma from './prisma-client';
+import { IVeiculoRepository } from '../../domain/repositories/veiculo-repository.interface';
 import { Veiculo } from '../../domain/entities/veiculo';
 import { BaseRepository } from './base-repository';
 import { IEventBus } from '../../application/event-bus/event-bus.interface';
-import { StatusVeiculo, StatusVeiculoValue } from '../../domain/value-objects/status-veiculo';
+import { StatusVeiculoValue } from '../../domain/value-objects/status-veiculo';
 import { EVENT_BUS } from '../config/injection-tokens';
 
 @Injectable()
-export class VeiculoRepositoryImpl extends BaseRepository implements VeiculoRepository {
+export class VeiculoRepositoryImpl
+  extends BaseRepository
+  implements IVeiculoRepository
+{
   private readonly logger = new Logger(VeiculoRepositoryImpl.name);
-  private db: sqlite3.Database;
 
-  constructor(@Inject(EVENT_BUS) eventBus: IEventBus) {
+  constructor(@Inject(EVENT_BUS) protected readonly eventBus: IEventBus) {
     super(eventBus);
-    this.initializeDatabase();
-  }
-
-  private initializeDatabase(): void {
-    this.db = new sqlite3.Database(':memory:', (err) => {
-      if (err) {
-        this.logger.error('Erro ao conectar com banco de dados:', err);
-      } else {
-        this.logger.log('Conectado ao banco SQLite');
-        this.createTable();
-      }
-    });
-  }
-
-  private createTable(): void {
-    const sql = `
-      CREATE TABLE IF NOT EXISTS veiculos (
-        id TEXT PRIMARY KEY,
-        placa TEXT UNIQUE NOT NULL,
-        chassi TEXT UNIQUE NOT NULL,
-        renavam TEXT UNIQUE NOT NULL,
-        modelo TEXT NOT NULL,
-        marca TEXT NOT NULL,
-        ano INTEGER NOT NULL,
-        status TEXT NOT NULL,
-        created_at DATETIME NOT NULL,
-        updated_at DATETIME NOT NULL
-      )
-    `;
-
-    this.db.run(sql, (err) => {
-      if (err) {
-        this.logger.error('Erro ao criar tabela:', err);
-      } else {
-        this.logger.log('Tabela veiculos criada com sucesso');
-      }
-    });
   }
 
   async save(veiculo: Veiculo): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        INSERT INTO veiculos (id, placa, chassi, renavam, modelo, marca, ano, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-
-      this.db.run(sql, [
-        veiculo.getId(),
-        veiculo.getPlaca(),
-        veiculo.getChassi(),
-        veiculo.getRenavam(),
-        veiculo.getModelo(),
-        veiculo.getMarca(),
-        veiculo.getAno(),
-        veiculo.getStatus().getValor(),
-        veiculo.getCreatedAt().toISOString(),
-        veiculo.getUpdatedAt().toISOString()
-      ], async (err) => {
-        if (err) {
-          this.logger.error('Erro ao salvar veículo:', err);
-          reject(err);
-        } else {
-          await this.dispatchEvents(veiculo);
-          resolve();
-        }
-      });
+    await prisma.veiculo.create({
+      data: {
+        id: veiculo.id,
+        placa: veiculo.placa,
+        chassi: veiculo.chassi,
+        renavam: veiculo.renavam,
+        modelo: veiculo.modelo,
+        marca: veiculo.marca,
+        ano: veiculo.ano,
+        status: this.toPrismaStatus(veiculo.status.getValor()),
+        createdAt: veiculo.createdAt,
+        updatedAt: veiculo.updatedAt,
+      },
     });
+    await super.dispatchEvents(veiculo);
   }
 
   async findById(id: string): Promise<Veiculo | null> {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM veiculos WHERE id = ?';
-      
-      this.db.get(sql, [id], (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (!row) {
-          resolve(null);
-        } else {
-          resolve(this.mapRowToVeiculo(row));
-        }
-      });
-    });
+    const data = await prisma.veiculo.findUnique({ where: { id } });
+    return data ? this.mapPrismaToVeiculo(data) : null;
   }
 
   async findByPlaca(placa: string): Promise<Veiculo | null> {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM veiculos WHERE placa = ?';
-      
-      this.db.get(sql, [placa], (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (!row) {
-          resolve(null);
-        } else {
-          resolve(this.mapRowToVeiculo(row));
-        }
-      });
-    });
+    const data = await prisma.veiculo.findUnique({ where: { placa } });
+    return data ? this.mapPrismaToVeiculo(data) : null;
   }
 
   async findByChassi(chassi: string): Promise<Veiculo | null> {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM veiculos WHERE chassi = ?';
-      
-      this.db.get(sql, [chassi], (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (!row) {
-          resolve(null);
-        } else {
-          resolve(this.mapRowToVeiculo(row));
-        }
-      });
-    });
+    const data = await prisma.veiculo.findUnique({ where: { chassi } });
+    return data ? this.mapPrismaToVeiculo(data) : null;
   }
 
   async findByRenavam(renavam: string): Promise<Veiculo | null> {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM veiculos WHERE renavam = ?';
-      
-      this.db.get(sql, [renavam], (err, row) => {
-        if (err) {
-          reject(err);
-        } else if (!row) {
-          resolve(null);
-        } else {
-          resolve(this.mapRowToVeiculo(row));
-        }
-      });
-    });
+    const data = await prisma.veiculo.findUnique({ where: { renavam } });
+    return data ? this.mapPrismaToVeiculo(data) : null;
   }
 
-  async findByPlacaOrChassiOrRenavam(placa: string, chassi: string, renavam: string): Promise<Veiculo[]> {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT * FROM veiculos 
-        WHERE placa = ? OR chassi = ? OR renavam = ?
-      `;
-      
-      this.db.all(sql, [placa, chassi, renavam], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          const veiculos = rows.map(row => this.mapRowToVeiculo(row));
-          resolve(veiculos);
-        }
-      });
+  async findByPlacaOrChassiOrRenavam(
+    placa: string,
+    chassi: string,
+    renavam: string,
+  ): Promise<Veiculo[]> {
+    const data = await prisma.veiculo.findMany({
+      where: {
+        OR: [{ placa }, { chassi }, { renavam }],
+      },
     });
+    return data.map(this.mapPrismaToVeiculo);
   }
 
   async findAll(): Promise<Veiculo[]> {
-    return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM veiculos ORDER BY created_at DESC';
-      
-      this.db.all(sql, [], (err, rows) => {
-        if (err) {
-          reject(err);
-        } else {
-          const veiculos = rows.map(row => this.mapRowToVeiculo(row));
-          resolve(veiculos);
-        }
-      });
+    const data = await prisma.veiculo.findMany({
+      orderBy: { createdAt: 'desc' },
     });
+    return data.map(this.mapPrismaToVeiculo);
   }
 
   async update(veiculo: Veiculo): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const sql = `
-        UPDATE veiculos 
-        SET placa = ?, chassi = ?, renavam = ?, modelo = ?, marca = ?, ano = ?, status = ?, updated_at = ?
-        WHERE id = ?
-      `;
-
-      this.db.run(sql, [
-        veiculo.getPlaca(),
-        veiculo.getChassi(),
-        veiculo.getRenavam(),
-        veiculo.getModelo(),
-        veiculo.getMarca(),
-        veiculo.getAno(),
-        veiculo.getStatus().getValor(),
-        veiculo.getUpdatedAt().toISOString(),
-        veiculo.getId()
-      ], async (err) => {
-        if (err) {
-          this.logger.error('Erro ao atualizar veículo:', err);
-          reject(err);
-        } else {
-          await this.dispatchEvents(veiculo);
-          resolve();
-        }
-      });
+    await prisma.veiculo.update({
+      where: { id: veiculo.id },
+      data: {
+        placa: veiculo.placa,
+        chassi: veiculo.chassi,
+        renavam: veiculo.renavam,
+        modelo: veiculo.modelo,
+        marca: veiculo.marca,
+        ano: veiculo.ano,
+        status: this.toPrismaStatus(veiculo.status.getValor()),
+        updatedAt: veiculo.updatedAt,
+      },
     });
+    await super.dispatchEvents(veiculo);
   }
 
   async delete(id: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const sql = 'DELETE FROM veiculos WHERE id = ?';
-      
-      this.db.run(sql, [id], (err) => {
-        if (err) {
-          this.logger.error('Erro ao deletar veículo:', err);
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
-    });
+    await prisma.veiculo.delete({ where: { id } });
   }
 
-  private mapRowToVeiculo(row: any): Veiculo {
-    return new Veiculo(
-      row.id,
-      row.placa,
-      row.chassi,
-      row.renavam,
-      row.modelo,
-      row.marca,
-      row.ano,
-      new StatusVeiculoValue(row.status as StatusVeiculo),
-      new Date(row.created_at),
-      new Date(row.updated_at)
-    );
+  private toPrismaStatus(status: string): any {
+    // Mapeia os valores do domínio para o enum do Prisma
+    switch (status) {
+      case 'ativo':
+        return 'ATIVO';
+      case 'em ativação':
+        return 'EM_ATIVACAO';
+      case 'desativado':
+        return 'DESATIVADO';
+      case 'em desativação':
+        return 'EM_DESATIVACAO';
+      default:
+        throw new Error('Status inválido');
+    }
   }
-} 
+
+  private toDomainStatus(status: string): string {
+    switch (status) {
+      case 'ATIVO':
+        return 'ativo';
+      case 'EM_ATIVACAO':
+        return 'em ativação';
+      case 'DESATIVADO':
+        return 'desativado';
+      case 'EM_DESATIVACAO':
+        return 'em desativação';
+      default:
+        throw new Error('Status inválido');
+    }
+  }
+
+  private mapPrismaToVeiculo = (data: any): Veiculo => {
+    const veiculo = new (Veiculo as any)(
+      {
+        placa: data.placa,
+        chassi: data.chassi,
+        renavam: data.renavam,
+        modelo: data.modelo,
+        marca: data.marca,
+        ano: data.ano,
+        status: new StatusVeiculoValue(this.toDomainStatus(data.status) as any),
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+      },
+      data.id,
+    );
+    return veiculo;
+  };
+}

@@ -1,18 +1,29 @@
+import { IDomainEvent } from '../../domain/events/domain-event';
 import { IEventBus } from './event-bus.interface';
-import { DomainEvent } from '../../domain/events/domain-event';
+import { Injectable, Logger } from '@nestjs/common';
 
+@Injectable()
 export class EventBus implements IEventBus {
-  private handlers: { [eventType: string]: ((event: DomainEvent) => Promise<void>)[] } = {};
+  private readonly logger = new Logger(EventBus.name);
+  private handlers: {
+    [eventName: string]: ((event: any) => Promise<void>)[];
+  } = {};
 
-  async publish(event: DomainEvent): Promise<void> {
-    const handlers = this.handlers[event.eventName] || [];
-    for (const handler of handlers) {
-      await handler(event);
+  async publish(event: IDomainEvent): Promise<void> {
+    const eventName = event.constructor.name;
+    const handlers = this.handlers[eventName];
+
+    if (handlers) {
+      this.logger.log(`Handling event: ${eventName}`);
+      await Promise.all(handlers.map(handler => handler(event)));
     }
   }
 
-  register<T extends DomainEvent>(eventType: string, handler: (event: T) => Promise<void>): void {
-    if (!this.handlers[eventType]) this.handlers[eventType] = [];
-    this.handlers[eventType].push(handler as (event: DomainEvent) => Promise<void>);
+  register(eventName: string, handler: (event: any) => Promise<void>): void {
+    if (!this.handlers[eventName]) {
+      this.handlers[eventName] = [];
+    }
+    this.handlers[eventName].push(handler);
+    this.logger.log(`Registered handler for event: ${eventName}`);
   }
-} 
+}

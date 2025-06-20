@@ -34,17 +34,31 @@
 - **Clean Architecture** com separação clara de responsabilidades
 - **Eventos de domínio** para desacoplamento
 - **Cache em memória** para performance
-- **RabbitMQ** para mensageria (simulado)
+- **RabbitMQ** para mensageria
 - **Testes automatizados** com alta cobertura
 
 ## 🏗️ Arquitetura
 
 ```
 src/
-├── domain/           # Regras de negócio e entidades
-├── application/      # Casos de uso e DTOs
+├── domain/           # Regras de negócio, entidades, eventos de domínio
+│   ├── entities/
+│   ├── events/
+│   ├── repositories/
+│   └── value-objects/
+├── application/      # Casos de uso, mapeadores
+│   ├── use-cases/
+│   ├── mappers/
+│   └── event-bus/
 ├── infrastructure/   # Implementações externas (DB, Cache, Messaging)
-└── presentation/     # Controllers e validações
+│   ├── database/
+│   ├── cache/
+│   └── messaging/
+├── presentation/     # Controllers, DTOs de request/response, validações
+│   ├── controllers/
+│   ├── requests/
+│   ├── responses/
+│   └── validators/
 ```
 
 ## 🛠️ Tecnologias
@@ -54,7 +68,7 @@ src/
 - **SQLite** - Banco de dados (em memória)
 - **Jest** - Framework de testes
 - **class-validator** - Validação de dados
-- **RabbitMQ** - Mensageria (simulado)
+- **RabbitMQ** - Mensageria
 
 ## 📦 Instalação
 
@@ -152,34 +166,36 @@ Content-Type: application/json
 }
 ```
 
-## 🏛️ Clean Architecture
+## 📨 Mensageria com RabbitMQ
 
-### Domain Layer
-- **Entidades**: `Veiculo`, `StatusVeiculo`
-- **Eventos**: `VeiculoCriado`, `VeiculoAtualizado`, `VeiculoDesativado`
-- **Interfaces**: `VeiculoRepository`
+O projeto utiliza RabbitMQ para publicação e consumo real de mensagens em filas para eventos de domínio.
 
-### Application Layer
-- **Casos de Uso**: Create, Update, Delete, Get, GetById
-- **DTOs**: CreateVeiculoDto, UpdateVeiculoDto, VeiculoResponseDto
-- **Mapeadores**: VeiculoMapper
+### Variáveis de ambiente
 
-### Infrastructure Layer
-- **Repositório**: SQLite em memória
-- **Cache**: Cache em memória
-- **Mensageria**: RabbitMQ (simulado)
+- `RABBITMQ_URL`: URL de conexão do RabbitMQ (default: `amqp://localhost`)
 
-### Presentation Layer
-- **Controllers**: VeiculoController
-- **Validações**: class-validator decorators
+### Executando os Consumers
 
-## 📊 Cobertura de Testes
+Os consumers processam eventos de ativação e desativação de veículos publicados nas filas.
 
+#### Ativar veículo (consumer):
+
+```sh
+node dist/infrastructure/messaging/consume-veiculo-em-ativacao.js
 ```
-Test Suites: 7 passed, 7 total
-Tests:       52 passed, 52 total
-Coverage:    95%+
+
+#### Desativar veículo (consumer):
+
+```sh
+node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js
 ```
+
+> **Dica:** Rode cada consumer em um terminal separado.
+
+## 🗂️ Organização dos DTOs
+
+- **presentation/requests/**: DTOs de entrada (RequestDto)
+- **presentation/responses/**: DTOs de saída (ResponseDto)
 
 ## 🔧 Scripts Disponíveis
 
@@ -198,20 +214,70 @@ npm run test:debug     # Testes em modo debug
 # Build
 npm run build          # Compilar TypeScript
 npm run format         # Formatar código
-npm run lint           # Linter
 ```
 
-## 🚀 Próximos Passos
 
-- [ ] **Docker**: Containerização da aplicação
-- [ ] **Microserviços**: Separação em serviços independentes
-- [ ] **RabbitMQ Real**: Implementação real da mensageria
-- [ ] **PostgreSQL**: Banco de dados de produção
-- [ ] **Redis**: Cache distribuído
-- [ ] **Swagger**: Documentação da API
-- [ ] **CI/CD**: Pipeline de deploy automático
-- [ ] **Testes E2E**: Testes end-to-end com dependências reais
+## 📊 Cobertura de Testes
+
+```
+Test Suites: 7 passed, 7 total
+Tests:       52 passed, 52 total
+Coverage:    95%+
+```
+
+
+## 🏛️ Clean Architecture
+
+### Domain Layer
+- **Entidades**: `Veiculo`, `StatusVeiculo`
+- **Eventos**: `VeiculoCriado`, `VeiculoAtualizado`, `VeiculoEmDesativacao`
+- **Interfaces**: `VeiculoRepository`
+
+### Application Layer
+- **Casos de Uso**: Create, Update, Delete, Get, GetById
+- **Mapeadores**: VeiculoMapper
+- **EventBus**: EventBus, Handlers
+
+### Infrastructure Layer
+- **Repositório**: SQLite em memória
+- **Cache**: Cache em memória
+- **Mensageria**: RabbitMQ (publicador e consumers)
+
+### Presentation Layer
+- **Controllers**: VeiculoController
+- **DTOs**: Requests/Responses
+- **Validações**: class-validator decorators
+
 
 ## 📝 Licença
 
 Este projeto está sob a licença MIT.
+
+## 🐳 Docker Compose
+
+Para rodar toda a stack (aplicação, RabbitMQ e consumers) via Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+- Acesse a aplicação em: http://localhost:3000
+- Acesse o painel do RabbitMQ em: http://localhost:15672 (usuário/senha: guest/guest)
+
+### Consumers
+
+Os consumers de ativação e desativação de veículos sobem automaticamente como serviços no Docker Compose:
+- `consumer-ativacao`: processa a fila de ativação de veículos
+- `consumer-desativacao`: processa a fila de desativação de veículos
+
+Você pode visualizar os logs de cada consumer com:
+
+```sh
+docker-compose logs -f consumer-ativacao
+```
+
+```sh
+docker-compose logs -f consumer-desativacao
+```
+
+Não é necessário rodar manualmente os scripts de consumer.

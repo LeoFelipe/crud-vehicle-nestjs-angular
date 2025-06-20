@@ -1,7 +1,8 @@
 export enum StatusVeiculo {
   ATIVO = 'ativo',
   EM_ATIVACAO = 'em ativação',
-  DESATIVADO = 'desativado'
+  DESATIVADO = 'desativado',
+  EM_DESATIVACAO = 'em desativação',
 }
 
 export class StatusVeiculoValue {
@@ -27,11 +28,15 @@ export class StatusVeiculoValue {
     return this.valor === StatusVeiculo.DESATIVADO;
   }
 
+  estaEmDesativacao(): boolean {
+    return this.valor === StatusVeiculo.EM_DESATIVACAO;
+  }
+
   podeSerDesativado(): boolean {
-    return this.valor === StatusVeiculo.ATIVO;
+    return this.valor === StatusVeiculo.EM_DESATIVACAO;
   }
 
   podeSerAtivado(): boolean {
     return this.valor === StatusVeiculo.EM_ATIVACAO;
   }
-} 
+}

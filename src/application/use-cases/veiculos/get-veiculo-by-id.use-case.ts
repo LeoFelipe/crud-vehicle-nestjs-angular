@@ -1,6 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { VeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
-import { VeiculoResponseDto } from '../../dto/veiculo-response.dto';
+import { IVeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { VeiculoResponseDto } from '../../../presentation/responses/veiculo-response.dto';
 import { VeiculoMapper } from '../../mappers/veiculo.mapper';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
 
@@ -8,7 +8,7 @@ import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tok
 export class GetVeiculoByIdUseCase {
   constructor(
     @Inject(VEICULO_REPOSITORY)
-    private readonly veiculoRepository: VeiculoRepository
+    private readonly veiculoRepository: IVeiculoRepository,
   ) {}
 
   async execute(id: string): Promise<VeiculoResponseDto> {
@@ -23,4 +23,4 @@ export class GetVeiculoByIdUseCase {
 
     return VeiculoMapper.toResponseDto(veiculo);
   }
-} 
+}

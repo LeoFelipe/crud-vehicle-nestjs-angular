@@ -1,12 +1,13 @@
-import { DomainEvent } from './domain-event';
-import { Veiculo } from '../entities/veiculo';
+import { IDomainEvent } from './domain-event';
 
-export class VeiculoAtualizadoEvent implements DomainEvent {
-  public readonly occurredOn: Date;
-  public readonly eventName: string;
+export class VeiculoAtualizadoEvent implements IDomainEvent {
+  public readonly dateTimeOccurred: Date;
 
-  constructor(public readonly veiculo: Veiculo) {
-    this.occurredOn = new Date();
-    this.eventName = 'VeiculoAtualizado';
+  constructor(public readonly veiculoId: string) {
+    this.dateTimeOccurred = new Date();
   }
-} 
+
+  getAggregateId(): string {
+    return this.veiculoId;
+  }
+}

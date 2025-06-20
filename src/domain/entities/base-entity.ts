@@ -1,21 +1,28 @@
-import { DomainEvent } from '../events/domain-event';
+import { IDomainEvent } from '../events/domain-event';
 
-export abstract class BaseEntity {
-  private _events: DomainEvent[] = [];
+export abstract class BaseEntity<T> {
+  protected readonly _id: string;
+  protected readonly props: T;
+  private readonly _events: IDomainEvent[] = [];
 
-  get events(): DomainEvent[] {
-    return [...this._events];
+  constructor(props: T, id?: string) {
+    this._id = id || crypto.randomUUID();
+    this.props = props;
   }
 
-  protected addEvent(event: DomainEvent): void {
+  public get events(): IDomainEvent[] {
+    return this._events;
+  }
+
+  protected addEvent(event: IDomainEvent): void {
     this._events.push(event);
   }
 
   public clearEvents(): void {
-    this._events = [];
+    this._events.length = 0;
   }
 
   public hasEvents(): boolean {
     return this._events.length > 0;
   }
-} 
+}

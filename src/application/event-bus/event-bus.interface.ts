@@ -1,6 +1,6 @@
-import { DomainEvent } from '../../domain/events/domain-event';
+import { IDomainEvent } from '../../domain/events/domain-event';
 
 export interface IEventBus {
-  publish(event: DomainEvent): Promise<void>;
-  register<T extends DomainEvent>(eventType: string, handler: (event: T) => Promise<void>): void;
-} 
+  publish(event: IDomainEvent): Promise<void>;
+  register(eventName: string, handler: (event: any) => Promise<void>): void;
+}

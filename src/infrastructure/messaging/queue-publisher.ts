@@ -1,20 +1,26 @@
+import { Logger } from '@nestjs/common';
 import { IQueuePublisher } from './queue-publisher.interface';
+import * as amqp from 'amqplib';
 
 export class QueuePublisher implements IQueuePublisher {
-  private mode: 'inmemory' | 'rabbitmq';
+  private rabbitUrl: string;
+  private readonly logger = new Logger(QueuePublisher.name);
 
-  constructor(mode: 'inmemory' | 'rabbitmq' = 'inmemory') {
-    this.mode = mode;
+  constructor() {
+    this.rabbitUrl = process.env.RABBITMQ_URL || 'amqp://localhost';
   }
 
   async publish(queue: string, message: any): Promise<void> {
-    if (this.mode === 'inmemory') {
-      // Apenas loga ou armazena em array
-      console.log(`[InMemory] Publicado na fila "${queue}":`, message);
-    } else if (this.mode === 'rabbitmq') {
-      // Aqui vai a lógica real de publicação no RabbitMQ
-      // Exemplo: await this.rabbitmqClient.publish(queue, message);
-      console.log(`[RabbitMQ] (Simulado) Publicado na fila "${queue}":`, message);
-    }
+    const conn = await amqp.connect(this.rabbitUrl);
+    const channel = await conn.createChannel();
+    await channel.assertQueue(queue, { durable: true });
+
+    channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), {
+      persistent: true,
+    });
+    
+    await channel.close();
+    await conn.close();
+    this.logger.debug(`[RabbitMQ] Publicado na fila "${queue}":`, message);
   }
-} 
+}

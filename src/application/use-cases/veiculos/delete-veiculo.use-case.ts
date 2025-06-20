@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { VeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
+import { IVeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
 
 @Injectable()
 export class DeleteVeiculoUseCase {
   constructor(
     @Inject(VEICULO_REPOSITORY)
-    private readonly veiculoRepository: VeiculoRepository
+    private readonly veiculoRepository: IVeiculoRepository,
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -14,25 +14,27 @@ export class DeleteVeiculoUseCase {
     if (!id) {
       throw new Error('ID do veículo é obrigatório');
     }
-    
+
     // 2. Buscar veículo existente
     const existingVeiculo = await this.veiculoRepository.findById(id);
     if (!existingVeiculo) {
-      throw new Error('Veículo não encontrado');
+      throw new NotFoundException('Veículo não encontrado');
     }
-    
-    // 3. Validações de Negócio (validar se pode desativar o veículo)
-    if (!existingVeiculo.getStatus().podeSerDesativado()) {
-      throw new Error('Veículo não pode ser desativado no status atual');
+
+    // Regra: Apenas veículos EM_DESATIVACAO podem ser efetivamente deletados
+    if (!existingVeiculo.status.podeSerDesativado()) {
+      throw new Error(
+        'Este veículo não pode ser deletado pois não está no status "em desativação"',
+      );
     }
-    
+
     // 4. Adicionar Event de Veículo Desativado
-    existingVeiculo.desativar();
-    
+    existingVeiculo.solicitarDesativacao();
+
     // 5. Atualizar o Veículo no banco (exclusão lógica)
     await this.veiculoRepository.update(existingVeiculo);
-    
+
     // 6. Quando o veículo for atualizado, lançar os eventos que foram adicionados
     // (será feito pelo repository/notifier)
   }
-} 
+}

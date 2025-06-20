@@ -1,40 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { IVeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
 import { CreateVeiculoUseCase } from './create-veiculo.use-case';
-import { VeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
-import { CreateVeiculoDto } from '../../dto/create-veiculo.dto';
-import { Veiculo } from '../../../domain/entities/veiculo';
+import { CreateVeiculoRequestDto } from '../../../presentation/requests/create-veiculo-request.dto';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
+import { Logger } from '@nestjs/common';
 
 describe('CreateVeiculoUseCase', () => {
   let useCase: CreateVeiculoUseCase;
-  let mockVeiculoRepository: jest.Mocked<VeiculoRepository>;
+  let mockVeiculoRepository: jest.Mocked<IVeiculoRepository>;
 
-  const mockCreateVeiculoDto: CreateVeiculoDto = {
+  const mockCreateVeiculoDto: CreateVeiculoRequestDto = {
     placa: 'ABC1234',
     chassi: '12345678901234567',
     renavam: '12345678901',
     modelo: 'Civic',
     marca: 'Honda',
-    ano: 2023
+    ano: 2023,
   };
 
   const mockVeiculo = {
-    getId: jest.fn().mockReturnValue('test-id'),
-    getPlaca: jest.fn().mockReturnValue('ABC1234'),
-    getChassi: jest.fn().mockReturnValue('12345678901234567'),
-    getRenavam: jest.fn().mockReturnValue('12345678901'),
-    getModelo: jest.fn().mockReturnValue('Civic'),
-    getMarca: jest.fn().mockReturnValue('Honda'),
-    getAno: jest.fn().mockReturnValue(2023),
-    getStatus: jest.fn().mockReturnValue({ getValor: () => 'ativo' }),
-    getCreatedAt: jest.fn().mockReturnValue(new Date()),
-    getUpdatedAt: jest.fn().mockReturnValue(new Date())
+    id: 'test-id',
+    placa: 'ABC1234',
+    chassi: '12345678901234567',
+    renavam: '12345678901',
+    modelo: 'Civic',
+    marca: 'Honda',
+    ano: 2023,
+    status: { getValor: () => 'ativo' },
+    createdAt: new Date(),
+    updatedAt: new Date(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateVeiculoUseCase,
+        Logger,
         {
           provide: VEICULO_REPOSITORY,
           useValue: {
@@ -55,18 +56,15 @@ describe('CreateVeiculoUseCase', () => {
 
   describe('execute', () => {
     it('deve criar um veículo com sucesso', async () => {
-      // Arrange
       mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([]);
       mockVeiculoRepository.save.mockResolvedValue();
 
-      // Act
       const result = await useCase.execute(mockCreateVeiculoDto);
 
-      // Assert
       expect(mockVeiculoRepository.findByPlacaOrChassiOrRenavam).toHaveBeenCalledWith(
         mockCreateVeiculoDto.placa,
         mockCreateVeiculoDto.chassi,
-        mockCreateVeiculoDto.renavam
+        mockCreateVeiculoDto.renavam,
       );
       expect(mockVeiculoRepository.save).toHaveBeenCalled();
       expect(result).toHaveProperty('id');
@@ -79,95 +77,72 @@ describe('CreateVeiculoUseCase', () => {
       expect(result.status).toBe('em ativação');
     });
 
-    it('deve lançar erro quando já existe veículo com a mesma placa', async () => {
-      // Arrange
-      const existingVeiculo = {
+    it('deve lançar erro quando já existe um veículo com a mesma placa', async () => {
+      const conflictingVeiculo = {
         ...mockVeiculo,
-        getPlaca: jest.fn().mockReturnValue('ABC1234'),
-        getChassi: jest.fn().mockReturnValue('98765432109876543'),
-        getRenavam: jest.fn().mockReturnValue('98765432109')
-      };
-
-      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([existingVeiculo as any]);
-
-      // Act & Assert
-      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
-        'Já existe um veículo com este(s) campo(s): placa'
-      );
-      expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
-    });
-
-    it('deve lançar erro quando já existe veículo com o mesmo chassi', async () => {
-      // Arrange
-      const existingVeiculo = {
-        ...mockVeiculo,
-        getPlaca: jest.fn().mockReturnValue('XYZ5678'),
-        getChassi: jest.fn().mockReturnValue('12345678901234567'),
-        getRenavam: jest.fn().mockReturnValue('98765432109')
-      };
-
-      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([existingVeiculo as any]);
-
-      // Act & Assert
-      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
-        'Já existe um veículo com este(s) campo(s): chassi'
-      );
-      expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
-    });
-
-    it('deve lançar erro quando já existe veículo com o mesmo renavam', async () => {
-      // Arrange
-      const existingVeiculo = {
-        ...mockVeiculo,
-        getPlaca: jest.fn().mockReturnValue('XYZ5678'),
-        getChassi: jest.fn().mockReturnValue('98765432109876543'),
-        getRenavam: jest.fn().mockReturnValue('12345678901')
-      };
-
-      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([existingVeiculo as any]);
-
-      // Act & Assert
-      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
-        'Já existe um veículo com este(s) campo(s): renavam'
-      );
-      expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
-    });
-
-    it('deve lançar erro quando já existem múltiplos conflitos', async () => {
-      // Arrange
-      const existingVeiculo1 = {
-        ...mockVeiculo,
-        getPlaca: jest.fn().mockReturnValue('ABC1234'),
-        getChassi: jest.fn().mockReturnValue('98765432109876543'),
-        getRenavam: jest.fn().mockReturnValue('98765432109')
-      };
-
-      const existingVeiculo2 = {
-        ...mockVeiculo,
-        getPlaca: jest.fn().mockReturnValue('XYZ5678'),
-        getChassi: jest.fn().mockReturnValue('12345678901234567'),
-        getRenavam: jest.fn().mockReturnValue('11111111111')
+        id: 'other-id',
+        placa: 'ABC1234',
+        chassi: '11111111111111111',
+        renavam: '11111111111',
       };
 
       mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([
-        existingVeiculo1 as any,
-        existingVeiculo2 as any
+        conflictingVeiculo as any,
       ]);
 
-      // Act & Assert
       await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
-        'Já existe um veículo com este(s) campo(s): placa, chassi'
+        'Já existe um veículo com este(s) campo(s): placa',
       );
       expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
     });
 
-    it('deve lançar erro quando o repositório falha ao salvar', async () => {
-      // Arrange
-      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([]);
-      mockVeiculoRepository.save.mockRejectedValue(new Error('Erro ao salvar'));
+    it('deve lançar erro quando já existe um veículo com o mesmo chassi', async () => {
+      const conflictingVeiculo = {
+        ...mockVeiculo,
+        id: 'other-id',
+        placa: 'XYZ9999',
+        chassi: '12345678901234567',
+        renavam: '11111111111',
+      };
 
-      // Act & Assert
-      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow('Erro ao salvar');
+      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([
+        conflictingVeiculo as any,
+      ]);
+
+      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
+        'Já existe um veículo com este(s) campo(s): chassi',
+      );
+      expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro quando já existe um veículo com o mesmo renavam', async () => {
+      const conflictingVeiculo = {
+        ...mockVeiculo,
+        id: 'other-id',
+        placa: 'XYZ9999',
+        chassi: '11111111111111111',
+        renavam: '12345678901',
+      };
+
+      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([
+        conflictingVeiculo as any,
+      ]);
+
+      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
+        'Já existe um veículo com este(s) campo(s): renavam',
+      );
+      expect(mockVeiculoRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('deve lançar erro quando o repositório falha ao criar', async () => {
+      mockVeiculoRepository.findByPlacaOrChassiOrRenavam.mockResolvedValue([]);
+      mockVeiculoRepository.save.mockRejectedValue(
+        new Error('Erro ao criar veículo'),
+      );
+
+      await expect(useCase.execute(mockCreateVeiculoDto)).rejects.toThrow(
+        'Erro ao criar veículo',
+      );
     });
   });
 }); 

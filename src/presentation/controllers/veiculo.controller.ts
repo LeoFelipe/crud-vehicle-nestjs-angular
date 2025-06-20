@@ -1,24 +1,24 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Put, 
-  Delete, 
-  Body, 
-  Param, 
-  HttpCode, 
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  HttpCode,
   HttpStatus,
   ValidationPipe,
-  UsePipes
+  UsePipes,
 } from '@nestjs/common';
 import { CreateVeiculoUseCase } from '../../application/use-cases/veiculos/create-veiculo.use-case';
 import { UpdateVeiculoUseCase } from '../../application/use-cases/veiculos/update-veiculo.use-case';
 import { DeleteVeiculoUseCase } from '../../application/use-cases/veiculos/delete-veiculo.use-case';
 import { GetVeiculosUseCase } from '../../application/use-cases/veiculos/get-veiculos.use-case';
 import { GetVeiculoByIdUseCase } from '../../application/use-cases/veiculos/get-veiculo-by-id.use-case';
-import { CreateVeiculoDto } from '../../application/dto/create-veiculo.dto';
-import { UpdateVeiculoDto } from '../../application/dto/update-veiculo.dto';
-import { VeiculoResponseDto } from '../../application/dto/veiculo-response.dto';
+import { VeiculoResponseDto } from '../responses/veiculo-response.dto';
+import { CreateVeiculoRequestDto } from '../requests/create-veiculo-request.dto';
+import { UpdateVeiculoRequestDto } from '../requests/update-veiculo-request.dto';
 
 @Controller('veiculos')
 @UsePipes(new ValidationPipe({ transform: true }))
@@ -28,12 +28,14 @@ export class VeiculoController {
     private readonly updateVeiculoUseCase: UpdateVeiculoUseCase,
     private readonly deleteVeiculoUseCase: DeleteVeiculoUseCase,
     private readonly getVeiculosUseCase: GetVeiculosUseCase,
-    private readonly getVeiculoByIdUseCase: GetVeiculoByIdUseCase
+    private readonly getVeiculoByIdUseCase: GetVeiculoByIdUseCase,
   ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: CreateVeiculoDto): Promise<VeiculoResponseDto> {
+  async create(
+    @Body() dto: CreateVeiculoRequestDto,
+  ): Promise<VeiculoResponseDto> {
     return this.createVeiculoUseCase.execute(dto);
   }
 
@@ -53,7 +55,7 @@ export class VeiculoController {
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') id: string,
-    @Body() dto: UpdateVeiculoDto
+    @Body() dto: UpdateVeiculoRequestDto,
   ): Promise<VeiculoResponseDto> {
     return this.updateVeiculoUseCase.execute(id, dto);
   }
@@ -63,4 +65,4 @@ export class VeiculoController {
   async delete(@Param('id') id: string): Promise<void> {
     await this.deleteVeiculoUseCase.execute(id);
   }
-} 
+}

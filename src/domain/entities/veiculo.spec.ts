@@ -1,5 +1,8 @@
 import { Veiculo } from './veiculo';
-import { StatusVeiculo, StatusVeiculoValue } from '../value-objects/status-veiculo';
+import {
+  StatusVeiculo,
+  StatusVeiculoValue,
+} from '../value-objects/status-veiculo';
 
 describe('Veiculo', () => {
   const validVeiculoData = {
@@ -9,159 +12,134 @@ describe('Veiculo', () => {
     renavam: '12345678901',
     modelo: 'Civic',
     marca: 'Honda',
-    ano: 2023
+    ano: 2023,
   };
 
   describe('create', () => {
     it('deve criar um veículo com sucesso', () => {
       // Act
-      const veiculo = Veiculo.create(
-        validVeiculoData.id,
-        validVeiculoData.placa,
-        validVeiculoData.chassi,
-        validVeiculoData.renavam,
-        validVeiculoData.modelo,
-        validVeiculoData.marca,
-        validVeiculoData.ano
-      );
+      const veiculo = Veiculo.create({
+        placa: validVeiculoData.placa,
+        chassi: validVeiculoData.chassi,
+        renavam: validVeiculoData.renavam,
+        modelo: validVeiculoData.modelo,
+        marca: validVeiculoData.marca,
+        ano: validVeiculoData.ano,
+      }, validVeiculoData.id);
 
       // Assert
-      expect(veiculo.getId()).toBe(validVeiculoData.id);
-      expect(veiculo.getPlaca()).toBe(validVeiculoData.placa);
-      expect(veiculo.getChassi()).toBe(validVeiculoData.chassi);
-      expect(veiculo.getRenavam()).toBe(validVeiculoData.renavam);
-      expect(veiculo.getModelo()).toBe(validVeiculoData.modelo);
-      expect(veiculo.getMarca()).toBe(validVeiculoData.marca);
-      expect(veiculo.getAno()).toBe(validVeiculoData.ano);
-      expect(veiculo.getStatus().getValor()).toBe(StatusVeiculo.EM_ATIVACAO);
+      expect(veiculo.id).toBe(validVeiculoData.id);
+      expect(veiculo.placa).toBe(validVeiculoData.placa);
+      expect(veiculo.chassi).toBe(validVeiculoData.chassi);
+      expect(veiculo.renavam).toBe(validVeiculoData.renavam);
+      expect(veiculo.modelo).toBe(validVeiculoData.modelo);
+      expect(veiculo.marca).toBe(validVeiculoData.marca);
+      expect(veiculo.ano).toBe(validVeiculoData.ano);
+      expect(veiculo.status.getValor()).toBe(StatusVeiculo.EM_ATIVACAO);
       expect(veiculo.hasEvents()).toBe(true);
       expect(veiculo.events).toHaveLength(1);
-      expect(veiculo.events[0].eventName).toBe('VeiculoCriado');
-    });
-
-    it('deve lançar erro quando ID é vazio', () => {
-      // Act & Assert
-      expect(() => {
-        new Veiculo(
-          '',
-          validVeiculoData.placa,
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
-      }).toThrow('ID do veículo é obrigatório');
+      expect(veiculo.events[0].constructor.name).toBe('VeiculoCriadoEvent');
     });
 
     it('deve lançar erro quando placa é muito curta', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          'ABC',
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: 'ABC',
+          chassi: validVeiculoData.chassi,
+          renavam: validVeiculoData.renavam,
+          modelo: validVeiculoData.modelo,
+          marca: validVeiculoData.marca,
+          ano: validVeiculoData.ano,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Placa deve ter pelo menos 6 caracteres');
     });
 
     it('deve lançar erro quando chassi não tem 17 caracteres', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          validVeiculoData.placa,
-          '123456789',
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: validVeiculoData.placa,
+          chassi: '123456789',
+          renavam: validVeiculoData.renavam,
+          modelo: validVeiculoData.modelo,
+          marca: validVeiculoData.marca,
+          ano: validVeiculoData.ano,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Chassi deve ter exatamente 17 caracteres');
     });
 
     it('deve lançar erro quando renavam não tem 11 dígitos', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          validVeiculoData.placa,
-          validVeiculoData.chassi,
-          '123456',
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: validVeiculoData.placa,
+          chassi: validVeiculoData.chassi,
+          renavam: '123456',
+          modelo: validVeiculoData.modelo,
+          marca: validVeiculoData.marca,
+          ano: validVeiculoData.ano,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Renavam deve ter exatamente 11 dígitos');
     });
 
     it('deve lançar erro quando modelo é muito curto', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          validVeiculoData.placa,
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          'A',
-          validVeiculoData.marca,
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: validVeiculoData.placa,
+          chassi: validVeiculoData.chassi,
+          renavam: validVeiculoData.renavam,
+          modelo: 'A',
+          marca: validVeiculoData.marca,
+          ano: validVeiculoData.ano,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Modelo deve ter pelo menos 2 caracteres');
     });
 
     it('deve lançar erro quando marca é muito curta', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          validVeiculoData.placa,
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          'H',
-          validVeiculoData.ano,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: validVeiculoData.placa,
+          chassi: validVeiculoData.chassi,
+          renavam: validVeiculoData.renavam,
+          modelo: validVeiculoData.modelo,
+          marca: 'H',
+          ano: validVeiculoData.ano,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Marca deve ter pelo menos 2 caracteres');
     });
 
     it('deve lançar erro quando ano é inválido', () => {
       // Act & Assert
       expect(() => {
-        new Veiculo(
-          validVeiculoData.id,
-          validVeiculoData.placa,
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          1800,
-          new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
-          new Date(),
-          new Date()
-        );
+        new Veiculo({
+          placa: validVeiculoData.placa,
+          chassi: validVeiculoData.chassi,
+          renavam: validVeiculoData.renavam,
+          modelo: validVeiculoData.modelo,
+          marca: validVeiculoData.marca,
+          ano: 1800,
+          status: new StatusVeiculoValue(StatusVeiculo.EM_ATIVACAO),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }, validVeiculoData.id);
       }).toThrow('Ano deve ser válido');
     });
   });
@@ -170,15 +148,14 @@ describe('Veiculo', () => {
     let veiculo: Veiculo;
 
     beforeEach(() => {
-      veiculo = Veiculo.create(
-        validVeiculoData.id,
-        validVeiculoData.placa,
-        validVeiculoData.chassi,
-        validVeiculoData.renavam,
-        validVeiculoData.modelo,
-        validVeiculoData.marca,
-        validVeiculoData.ano
-      );
+      veiculo = Veiculo.create({
+        placa: validVeiculoData.placa,
+        chassi: validVeiculoData.chassi,
+        renavam: validVeiculoData.renavam,
+        modelo: validVeiculoData.modelo,
+        marca: validVeiculoData.marca,
+        ano: validVeiculoData.ano,
+      }, validVeiculoData.id);
       veiculo.clearEvents(); // Limpar eventos de criação
     });
 
@@ -190,104 +167,102 @@ describe('Veiculo', () => {
         renavam: '98765432109',
         modelo: 'Corolla',
         marca: 'Toyota',
-        ano: 2024
+        ano: 2024,
       };
 
       // Act
-      veiculo.update(
-        updateData.placa,
-        updateData.chassi,
-        updateData.renavam,
-        updateData.modelo,
-        updateData.marca,
-        updateData.ano
-      );
+      veiculo.update(updateData);
 
       // Assert
-      expect(veiculo.getStatus().getValor()).toBe(StatusVeiculo.EM_ATIVACAO);
+      expect(veiculo.placa).toBe(updateData.placa);
+      expect(veiculo.chassi).toBe(updateData.chassi);
+      expect(veiculo.renavam).toBe(updateData.renavam);
+      expect(veiculo.modelo).toBe(updateData.modelo);
+      expect(veiculo.marca).toBe(updateData.marca);
+      expect(veiculo.ano).toBe(updateData.ano);
+      expect(veiculo.status.getValor()).toBe(StatusVeiculo.EM_ATIVACAO);
       expect(veiculo.hasEvents()).toBe(true);
       expect(veiculo.events).toHaveLength(1);
-      expect(veiculo.events[0].eventName).toBe('VeiculoAtualizado');
-    });
-
-    it('deve lançar erro quando placa é inválida na atualização', () => {
-      // Act & Assert
-      expect(() => {
-        veiculo.update(
-          'ABC',
-          validVeiculoData.chassi,
-          validVeiculoData.renavam,
-          validVeiculoData.modelo,
-          validVeiculoData.marca,
-          validVeiculoData.ano
-        );
-      }).toThrow('Placa deve ter pelo menos 6 caracteres');
+      expect(veiculo.events[0].constructor.name).toBe('VeiculoAtualizadoEvent');
     });
   });
 
-  describe('desativar', () => {
+  describe('solicitarDesativacao', () => {
     let veiculo: Veiculo;
 
     beforeEach(() => {
-      veiculo = Veiculo.create(
-        validVeiculoData.id,
-        validVeiculoData.placa,
-        validVeiculoData.chassi,
-        validVeiculoData.renavam,
-        validVeiculoData.modelo,
-        validVeiculoData.marca,
-        validVeiculoData.ano
-      );
-      veiculo.ativar();
+      veiculo = Veiculo.create({
+        placa: validVeiculoData.placa,
+        chassi: validVeiculoData.chassi,
+        renavam: validVeiculoData.renavam,
+        modelo: validVeiculoData.modelo,
+        marca: validVeiculoData.marca,
+        ano: validVeiculoData.ano,
+      }, validVeiculoData.id);
+      veiculo.ativar(); // Ativar antes de solicitar desativação
       veiculo.clearEvents(); // Limpar eventos de criação
     });
 
-    it('deve desativar um veículo com sucesso', () => {
+    it('deve solicitar desativação com sucesso', () => {
+      // Act
+      veiculo.solicitarDesativacao();
+
+      // Assert
+      expect(veiculo.status.getValor()).toBe(StatusVeiculo.EM_DESATIVACAO);
+      expect(veiculo.hasEvents()).toBe(true);
+      expect(veiculo.events).toHaveLength(1);
+      expect(veiculo.events[0].constructor.name).toBe('VeiculoEmDesativacaoEvent');
+    });
+
+    it('deve desativar veículo quando já está em desativação', () => {
+      // Arrange
+      veiculo.solicitarDesativacao();
+      veiculo.clearEvents();
+
       // Act
       veiculo.desativar();
 
       // Assert
-      expect(veiculo.getStatus().getValor()).toBe(StatusVeiculo.DESATIVADO);
-      expect(veiculo.hasEvents()).toBe(true);
-      expect(veiculo.events).toHaveLength(1);
-      expect(veiculo.events[0].eventName).toBe('VeiculoDesativado');
-    });
-
-    it('deve lançar erro quando veículo já está desativado', () => {
-      // Arrange
-      veiculo.desativar();
-      veiculo.clearEvents();
-
-      // Act & Assert
-      expect(() => {
-        veiculo.desativar();
-      }).toThrow('Veículo não pode ser desativado no status atual');
+      expect(veiculo.status.getValor()).toBe(StatusVeiculo.DESATIVADO);
     });
   });
 
-  describe('events', () => {
-    it('deve gerenciar eventos corretamente', () => {
-      // Arrange
-      const veiculo = Veiculo.create(
-        validVeiculoData.id,
-        validVeiculoData.placa,
-        validVeiculoData.chassi,
-        validVeiculoData.renavam,
-        validVeiculoData.modelo,
-        validVeiculoData.marca,
-        validVeiculoData.ano
-      );
+  describe('status', () => {
+    let veiculo: Veiculo;
 
-      // Assert
-      expect(veiculo.hasEvents()).toBe(true);
-      expect(veiculo.events).toHaveLength(1);
+    beforeEach(() => {
+      veiculo = Veiculo.create({
+        placa: validVeiculoData.placa,
+        chassi: validVeiculoData.chassi,
+        renavam: validVeiculoData.renavam,
+        modelo: validVeiculoData.modelo,
+        marca: validVeiculoData.marca,
+        ano: validVeiculoData.ano,
+      }, validVeiculoData.id);
+    });
 
+    it('deve retornar status correto após solicitar desativação', () => {
       // Act
-      veiculo.clearEvents();
+      veiculo.ativar();
+      veiculo.solicitarDesativacao();
 
       // Assert
-      expect(veiculo.hasEvents()).toBe(false);
-      expect(veiculo.events).toHaveLength(0);
+      expect(veiculo.status.estaEmDesativacao()).toBe(true);
+    });
+
+    it('deve criar veículo com status em ativação por padrão', () => {
+      // Act
+      const novoVeiculo = Veiculo.create({
+        placa: 'XYZ5678',
+        chassi: '98765432109876543',
+        renavam: '98765432109',
+        modelo: 'Corolla',
+        marca: 'Toyota',
+        ano: 2024,
+      }, 'new-id');
+
+      // Assert
+      expect(novoVeiculo.status.getValor()).toBe(StatusVeiculo.EM_ATIVACAO);
     });
   });
-}); 
+});

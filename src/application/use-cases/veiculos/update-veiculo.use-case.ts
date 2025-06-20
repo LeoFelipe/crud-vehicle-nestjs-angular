@@ -1,92 +1,69 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { VeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
-import { UpdateVeiculoDto } from '../../dto/update-veiculo.dto';
-import { VeiculoResponseDto } from '../../dto/veiculo-response.dto';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { IVeiculoRepository } from '../../../domain/repositories/veiculo-repository.interface';
+import { VeiculoResponseDto } from '../../../presentation/responses/veiculo-response.dto';
 import { VEICULO_REPOSITORY } from '../../../infrastructure/config/injection-tokens';
+import { UpdateVeiculoRequestDto } from '../../../presentation/requests/update-veiculo-request.dto';
+import { VeiculoMapper } from '../../mappers/veiculo.mapper';
 
 @Injectable()
 export class UpdateVeiculoUseCase {
   constructor(
     @Inject(VEICULO_REPOSITORY)
-    private readonly veiculoRepository: VeiculoRepository
+    private readonly veiculoRepository: IVeiculoRepository,
   ) {}
 
-  async execute(id: string, dto: UpdateVeiculoDto): Promise<VeiculoResponseDto> {
-    // 1. Validações do DTO (já feitas pelo class-validator)
-    
-    // 2. Buscar veículo existente
+  async execute(
+    id: string,
+    dto: UpdateVeiculoRequestDto,
+  ): Promise<VeiculoResponseDto> {
     const existingVeiculo = await this.veiculoRepository.findById(id);
     if (!existingVeiculo) {
-      throw new Error('Veículo não encontrado');
+      throw new NotFoundException('Veículo não encontrado');
     }
-    
-    // 3. Verificar se já existe outro veículo com placa, chassi ou renavam
-    await this.validateUniqueConstraintsForUpdate(id, dto);
-    
-    // 4. Mapear DTO para Entidade (atualizar propriedades)
-    existingVeiculo.update(
-      dto.placa,
-      dto.chassi,
-      dto.renavam,
-      dto.modelo,
-      dto.marca,
-      dto.ano
-    );
-    
-    // 5. Validações de Negócio (status do veículo deverá ser "em ativação")
-    // (já feitas na entidade)
-    
-    // 6. Adicionar Event de Veículo Atualizado (já adicionado na entidade)
-    
-    // 7. Atualizar o Veículo no banco
+
+    await this.checkForConflicts(dto, id);
+
+    existingVeiculo.update({
+      placa: dto.placa,
+      chassi: dto.chassi,
+      renavam: dto.renavam,
+      modelo: dto.modelo,
+      marca: dto.marca,
+      ano: dto.ano,
+    });
+
     await this.veiculoRepository.update(existingVeiculo);
-    
-    // 8. Quando o veículo for atualizado, lançar os eventos que foram adicionados
-    // (será feito pelo repository/notifier)
-    
-    return {
-      id: existingVeiculo.getId(),
-      placa: existingVeiculo.getPlaca(),
-      chassi: existingVeiculo.getChassi(),
-      renavam: existingVeiculo.getRenavam(),
-      modelo: existingVeiculo.getModelo(),
-      marca: existingVeiculo.getMarca(),
-      ano: existingVeiculo.getAno(),
-      status: existingVeiculo.getStatus().getValor(),
-      createdAt: existingVeiculo.getCreatedAt(),
-      updatedAt: existingVeiculo.getUpdatedAt()
-    };
+    return VeiculoMapper.toResponseDto(existingVeiculo);
   }
 
-  private async validateUniqueConstraintsForUpdate(id: string, dto: UpdateVeiculoDto): Promise<void> {
-    const existingVeiculos = await this.veiculoRepository.findByPlacaOrChassiOrRenavam(
-      dto.placa,
-      dto.chassi,
-      dto.renavam
-    );
+  private async checkForConflicts(
+    dto: UpdateVeiculoRequestDto,
+    idToIgnore?: string,
+  ): Promise<void> {
+    const existingVeiculos =
+      await this.veiculoRepository.findByPlacaOrChassiOrRenavam(
+        dto.placa,
+        dto.chassi,
+        dto.renavam,
+      );
 
-    const conflicts: string[] = [];
-    
-    for (const veiculo of existingVeiculos) {
-      // Ignorar o próprio veículo que está sendo atualizado
-      if (veiculo.getId() === id) {
-        continue;
-      }
-      
-      if (veiculo.getPlaca() === dto.placa) {
-        conflicts.push('placa');
-      }
-      if (veiculo.getChassi() === dto.chassi) {
-        conflicts.push('chassi');
-      }
-      if (veiculo.getRenavam() === dto.renavam) {
-        conflicts.push('renavam');
-      }
-    }
+    const filteredVeiculos = existingVeiculos.filter(v => v.id !== idToIgnore);
 
-    if (conflicts.length > 0) {
-      const uniqueConflicts = Array.from(new Set(conflicts));
-      throw new Error(`Já existe outro veículo com este(s) campo(s): ${uniqueConflicts.join(', ')}`);
+    if (filteredVeiculos.length > 0) {
+      const conflictFields = new Set<string>();
+      for (const veiculo of filteredVeiculos) {
+        if (veiculo.placa === dto.placa) conflictFields.add('placa');
+        if (veiculo.chassi === dto.chassi) conflictFields.add('chassi');
+        if (veiculo.renavam === dto.renavam) conflictFields.add('renavam');
+      }
+
+      if (conflictFields.size > 0) {
+        throw new Error(
+          `Já existe um veículo com este(s) campo(s): ${Array.from(
+            conflictFields,
+          ).join(', ')}`,
+        );
+      }
     }
   }
-} 
+}
