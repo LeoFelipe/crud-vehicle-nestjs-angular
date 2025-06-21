@@ -1,236 +1,118 @@
-# Backend - NestJS
+# 💻 Backend - NestJS
 
-> Veja também o [README principal do monorepo](../README.md) e o [Frontend (Angular)](../frontend/README.md)
-
-# CRUD de Veículos - NestJS
+> Este é o `README` específico do backend. Para uma visão geral, consulte o [README principal](../README.md).
 
 <p align="center">
   <a href="https://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/your-username/crud-vehicle-nestjs" target="_blank">
-    <img src="https://img.shields.io/badge/CRUD%20Veículos-NestJS-blue?style=for-the-badge&logo=nestjs" alt="CRUD Veículos NestJS" />
-  </a>
-  <a href="https://github.com/your-username/crud-vehicle-nestjs/blob/main/LICENSE" target="_blank">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge" alt="License" />
-  </a>
-  <a href="https://github.com/your-username/crud-vehicle-nestjs" target="_blank">
-    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
-  </a>
-  <a href="https://jestjs.io/" target="_blank">
-    <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest" />
-  </a>
-  <a href="https://github.com/your-username/crud-vehicle-nestjs" target="_blank">
-    <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
-  </a>
+  <strong>Um sistema de gerenciamento de veículos robusto, desenvolvido com NestJS e seguindo os princípios da Clean Architecture.</strong>
 </p>
 
-<p align="center">
-  📝 Licença: Este projeto está sob a licença MIT.
-</p>
+## ✨ Tecnologias
 
-<p align="center">
-  <strong>Sistema de gerenciamento de veículos desenvolvido em NestJS seguindo os princípios da Clean Architecture.</strong>
-</p>
+- **Framework**: [NestJS](https://nestjs.com/)
+- **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
+- **Banco de Dados**: [PostgreSQL](https://www.postgresql.org/)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **Mensageria**: [RabbitMQ](https://www.rabbitmq.com/)
+- **Testes**: [Jest](https://jestjs.io/)
+- **Validação**: [class-validator](https://github.com/typestack/class-validator)
+- **Documentação da API**: [Swagger (OpenAPI)](https://swagger.io/)
 
-
-## 🛠️ Tecnologias do Backend
-- **NestJS**
-- **TypeScript**
-- **PostgreSQL**
-- **RabbitMQ**
-- **Jest**
-- **class-validator**
-- **Swagger** (`@nestjs/swagger`, `swagger-ui-express`)
-  
 ## 🏗️ Arquitetura
 
-```
-backend/src/
-├── domain/           # Regras de negócio, entidades, eventos de domínio
-│   ├── entities/
-│   ├── events/
-│   ├── repositories/
-│   └── value-objects/
-├── application/      # Casos de uso, mapeadores, event-bus
-│   ├── use-cases/
-│   ├── mappers/
-│   └── event-bus/
-├── infrastructure/   # Implementações externas (DB, Cache, Messaging)
-│   ├── database/
-│   ├── cache/
-│   └── messaging/
-├── presentation/     # Controllers, DTOs de request/response, validações, filters, exceptions
-│   ├── controllers/
-│   ├── requests/
-│   ├── responses/
-│   ├── validators/
-│   ├── filters/      # Exception filters globais
-│   └── exceptions/   # Exceções customizadas de negócio
-```
-- **Exception Filter global** para padronização de respostas de erro
-- **Consumers de eventos** (ativação/desativação) como serviços separados
+O projeto adota os princípios da **Clean Architecture** para garantir um código desacoplado, testável e de fácil manutenção. A estrutura de diretórios reflete essa separação de responsabilidades:
 
-## 🗂️ Organização dos DTOs
-- **presentation/requests/**: DTOs de entrada (RequestDto)
-- **presentation/responses/**: DTOs de saída (ResponseDto)
-
-## 🔧 Scripts Disponíveis
-```bash
-# Desenvolvimento
-npm run start:dev      # Modo desenvolvimento com hot reload
-npm run start:debug    # Modo debug
-npm run start:prod     # Modo produção
-
-# Testes
-npm run test           # Testes unitários e integração
-npm run test:watch     # Testes em modo watch
-npm run test:cov       # Testes com coverage
-npm run test:debug     # Testes em modo debug
-
-# Build
-npm run build          # Compilar TypeScript
-npm run format         # Formatar código
-```
-
-## 📊 Cobertura de Testes
-```
-Test Suites: 7 passed, 7 total
-Tests:       52 passed, 52 total
-Coverage:    95%+
-```
+-   `src/domain`: Contém as regras de negócio, entidades (`Veiculo`), eventos de domínio e interfaces de repositório. É o núcleo da aplicação, sem dependências externas.
+-   `src/application`: Orquestra o fluxo de dados através dos casos de uso (use cases), interagindo com o domínio e as camadas externas.
+-   `src/infrastructure`: Implementa as interfaces definidas no domínio, como repositórios de banco de dados (Prisma) e serviços de mensageria (RabbitMQ).
+-   `src/presentation`: A camada mais externa, responsável por expor a API (controllers), definir os DTOs e tratar as requisições HTTP.
 
 ## 🧪 Testes
 
-O projeto possui uma estratégia completa de testes com diferentes níveis de cobertura:
+O projeto possui uma estratégia completa de testes para garantir a qualidade e a estabilidade do código, com alta cobertura.
 
-### 1. Testes Unitários
-Testam componentes isolados (entidades, casos de uso, mapeadores).
+### Tipos de Teste
 
-**Exemplos de testes unitários:**
-- ✅ Entidade `Veiculo` (validações de domínio)
-- ✅ Casos de uso (Create, Update, Delete, Get)
-- ✅ Mapeadores (DTO ↔ Entidade)
+-   **Testes de Unidade**: Focados em isolar e validar as menores partes do código, como as regras de negócio em entidades de domínio e a lógica dos casos de uso.
+-   **Testes de Integração**: Verificam a interação entre diferentes camadas da aplicação, especialmente os controllers, garantindo que o fluxo de uma requisição HTTP funcione corretamente desde a entrada até a resposta.
 
-### 2. Testes de Integração
-Testam a integração entre componentes (controllers + casos de uso + validações), incluindo testes de endpoints HTTP.
+### Como executar
 
-**Exemplos de testes de integração:**
-- ✅ Controllers (fluxo HTTP completo)
-- ✅ Validação de DTOs
-- ✅ Status HTTP corretos (200, 201, 400, 404, 500)
-- ✅ Estrutura de resposta JSON
-- ✅ Integração entre camadas (Presentation ↔ Application)
-
-> **Observação:** Todos os testes (unitários e de integração) são executados juntos pelo comando padrão:
-
-```bash
-npm run test
-```
-
-Para cobertura de testes, utilize:
-
-```bash
-npm run test:cov
-```
+-   **Executar todos os testes (unitários e integração):**
+    ```bash
+    npm run test
+    ```
+-   **Gerar relatório de cobertura de testes:**
+    ```bash
+    npm run test:cov
+    ```
 
 ## 📋 Endpoints da API
 
-### Veículos
+A documentação completa e interativa da API está disponível via **Swagger** no endpoint `/api` após iniciar a aplicação.
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/veiculos` | Criar novo veículo |
-| `GET` | `/veiculos` | Listar todos os veículos |
-| `GET` | `/veiculos/:id` | Buscar veículo por ID |
-| `PUT` | `/veiculos/:id` | Atualizar veículo |
-| `DELETE` | `/veiculos/:id` | Deletar veículo |
+-   **URL do Swagger**: [http://localhost:3000/api](http://localhost:3000/api)
 
-### Exemplo de Request/Response
+| Método   | Endpoint        | Descrição              |
+| :------- | :-------------- | :--------------------- |
+| `POST`   | `/veiculos`     | Cria um novo veículo.  |
+| `GET`    | `/veiculos`     | Lista todos os veículos. |
+| `GET`    | `/veiculos/:id` | Busca um veículo por ID. |
+| `PUT`    | `/veiculos/:id` | Atualiza um veículo.   |
+| `DELETE` | `/veiculos/:id` | Desativa um veículo.   |
 
-**Criar Veículo:**
-```bash
-POST /veiculos
-Content-Type: application/json
+### Exemplo de Criação
 
+**Request:** `POST /veiculos`
+```json
 {
-  "placa": "ABC1234",
-  "chassi": "12345678901234567",
+  "placa": "BRA2E19",
+  "chassi": "1234567890ABCDEFG",
   "renavam": "12345678901",
-  "modelo": "Civic",
-  "marca": "Honda",
+  "modelo": "HB20",
+  "marca": "Hyundai",
   "ano": 2023
 }
 ```
 
-**Response (201):**
+**Response (201 Created):**
 ```json
 {
-  "id": "uuid-gerado",
-  "placa": "ABC1234",
-  "chassi": "12345678901234567",
-  "renavam": "12345678901",
-  "modelo": "Civic",
-  "marca": "Honda",
-  "ano": 2023,
-  "status": "ativo",
-  "createdAt": "2023-01-01T00:00:00.000Z",
-  "updatedAt": "2023-01-01T00:00:00.000Z"
+    "id": "cfa3f2a8-1b2c-4d5e-9f6a-7b8c9d0e1f2a",
+    "placa": "BRA2E19",
+    "chassi": "1234567890ABCDEFG",
+    "renavam": "12345678901",
+    "modelo": "HB20",
+    "marca": "Hyundai",
+    "ano": 2023,
+    "status": "EM_ATIVACAO",
+    "createdAt": "2024-06-21T00:00:00.000Z",
+    "updatedAt": "2024-06-21T00:00:00.000Z"
 }
 ```
 
-## 📨 Mensageria com RabbitMQ
+## ⚡ Arquitetura Orientada a Eventos
 
-O projeto utiliza **RabbitMQ real** para publicação e consumo de eventos de domínio.
+O projeto utiliza uma **Arquitetura Orientada a Eventos (Event-Driven Architecture)** para promover o desacoplamento entre diferentes partes do sistema.
 
-- **Publicação de eventos:** A aplicação publica eventos de domínio (ex: VeiculoCriado, VeiculoEmDesativacao) nas filas do RabbitMQ.
-- **Consumers como microserviços parciais:** Os consumers de ativação e desativação de veículos rodam como serviços separados, processando eventos de suas respectivas filas.
-- **Variáveis de ambiente:**
-  - `RABBITMQ_URL`: URL de conexão do RabbitMQ (default: `amqp://localhost`)
+-   **Eventos de Domínio**: Ocorrencias significativas no negócio são capturadas como **Eventos de Domínio** (ex: `VeiculoCriadoEvent`). Isso permite que múltiplos *listeners* reajam a uma ação sem que o código original precise conhecê-los.
+-   **Event Bus**: Um barramento de eventos (`EventBus`) centraliza a publicação de eventos, permitindo que *handlers* registrados sejam notificados.
 
-### Executando os Consumers
+### 📨 Mensageria Assíncrona com RabbitMQ
 
-Os consumers processam eventos de ativação e desativação de veículos publicados nas filas.
+Para operações que podem ser executadas de forma assíncrona, o projeto utiliza o **RabbitMQ**.
 
-- **Ativar veículo (consumer):**
-  ```sh
-  node dist/infrastructure/messaging/consume-veiculo-em-ativacao.js
-  ```
-- **Desativar veículo (consumer):**
-  ```sh
-  node dist/infrastructure/messaging/consume-veiculo-em-desativacao.js
-  ```
-
-> **Dica:** Rode cada consumer em um terminal separado ou utilize o Docker Compose, que já sobe ambos automaticamente.
+-   **Publicação de Mensagens**: O `QueuePublisher` é responsável por publicar mensagens nas filas do RabbitMQ. Esta é uma ferramenta independente que pode ser utilizada em qualquer parte da aplicação (use cases, event handlers, services, etc.) para enviar mensagens de forma assíncrona, separando a lógica de negócio da responsabilidade de enviar uma mensagem.
+-   **Consumers**: Serviços independentes (`consumers`) escutam as filas e processam as mensagens de forma assíncrona. Por exemplo, um consumer é responsável por finalizar a ativação de um veículo.
+-   **Orquestração com Docker Compose**: O `docker-compose.yml` já gerencia a execução dos consumers como serviços separados, garantindo que o ecossistema de mensageria funcione de forma integrada.
 
 ## 📑 Tratamento de Erros
 
-Todas as respostas de erro seguem o formato padronizado:
+A API possui um `ExceptionFilter` global que padroniza todas as respostas de erro, garantindo consistência para o cliente.
 
-```json
-{
-  "success": false,
-  "statusCode": 400,
-  "response": [
-    "mensagem de erro 1",
-    "mensagem de erro 2"
-  ]
-}
-```
-
-- **Validações de DTO:** retornam 400 com lista de erros de validação.
-- **Erros de negócio:** retornam 400 com lista de erros de regra de negócio.
-- **Erros internos:** retornam 500 com mensagem genérica.
-
-## 📖 Swagger - Documentação da API
-
-A documentação interativa da API está disponível em:
-
-```
-http://localhost:3000/api
-```
-
-- Visualize e teste todos os endpoints.
-- Veja exemplos de request/response e schemas dos DTOs.
-- A documentação é gerada automaticamente a partir dos controllers e DTOs decorados com `@nestjs/swagger`.
+-   **Erros de Validação (400)**: Ocorrem quando os dados de entrada (DTOs) não atendem às regras definidas (ex: placa com formato inválido).
+-   **Erros de Negócio (400)**: Ocorrem quando uma regra de negócio é violada (ex: tentar cadastrar uma placa que já existe).
+-   **Erros de Servidor (500)**: Para exceções não tratadas, uma resposta genérica é enviada.
