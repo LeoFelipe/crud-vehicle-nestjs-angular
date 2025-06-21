@@ -1,1 +1,43 @@
 /* You can add global styles to this file, and also import other style files */
+
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import 'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap';
+@import 'https://fonts.googleapis.com/icon?family=Material+Icons';
+
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+}
+
+/* Custom Snackbar Styles */
+.success-snackbar {
+  background-color: #4CAF50; /* Verde */
+  color: white;
+}
+
+.error-snackbar {
+  background-color: #f44336; /* Vermelho */
+  color: white;
+}
+
+::ng-deep .snackbar-success {
+  .mdc-snackbar__surface {
+    background-color: #4CAF50;
+    color: white;
+  }
+
+  .mat-mdc-snack-bar-action {
+    color: white;
+  }
+}
+
+::ng-deep .snackbar-error {
+  .mdc-snackbar__surface {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .mat-mdc-snack-bar-action {
+    color: white;
+  }
+}

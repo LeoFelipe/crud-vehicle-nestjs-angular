@@ -11,7 +11,7 @@ import {
 @Injectable()
 export class GetVeiculosUseCase {
   private readonly CACHE_KEY = 'veiculos:all';
-  private readonly CACHE_TTL = 60; // 2 minutos
+  private readonly CACHE_TTL = 30; // 30 segundos
 
   constructor(
     @Inject(VEICULO_REPOSITORY)
