@@ -1,0 +1,4 @@
+export const EVENT_BUS = 'EVENT_BUS';
+export const VEICULO_REPOSITORY = 'VEICULO_REPOSITORY';
+export const CACHE = 'CACHE';
+export const QUEUE_PUBLISHER = 'QUEUE_PUBLISHER';
