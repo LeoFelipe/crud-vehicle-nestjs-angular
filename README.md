@@ -14,7 +14,7 @@ Este projeto é um sistema completo de **CRUD (Create, Read, Update, Delete) de 
 - **Backend em Node.js com NestJS** seguindo os princípios de **Clean Architecture**.
 - **CRUD completo de veículos** com os campos: `id`, `placa`, `chassi`, `renavam`, `modelo`, `marca`, `ano` e `status`.
 - **API RESTful** com tratamento de erros padronizado e validações.
-- **Mensageria com RabbitMQ** para processamento assíncrono de status de veículos.
+- **Mensageria com RabbitMQ** para processamento assíncrono através do QueuePublisher, permitindo operações assíncronas em qualquer parte da aplicação.
 - **Banco de dados PostgreSQL** com migrations gerenciadas pelo **Prisma ORM**.
 - **Testes automatizados** no backend com Jest.
 - **Documentação da API** gerada automaticamente com **Swagger (OpenAPI)**.

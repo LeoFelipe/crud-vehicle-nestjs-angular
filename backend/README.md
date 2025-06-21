@@ -100,6 +100,7 @@ O projeto utiliza uma **Arquitetura Orientada a Eventos (Event-Driven Architectu
 
 -   **Eventos de Domínio**: Ocorrencias significativas no negócio são capturadas como **Eventos de Domínio** (ex: `VeiculoCriadoEvent`). Isso permite que múltiplos *listeners* reajam a uma ação sem que o código original precise conhecê-los.
 -   **Event Bus**: Um barramento de eventos (`EventBus`) centraliza a publicação de eventos, permitindo que *handlers* registrados sejam notificados.
+-   **Integração com Mensageria**: Os event handlers podem utilizar o `QueuePublisher` para enviar mensagens assíncronas quando eventos de domínio ocorrem, mas a mensageria não está limitada apenas aos eventos - pode ser usada em qualquer parte da aplicação.
 
 ### 📨 Mensageria Assíncrona com RabbitMQ
 
