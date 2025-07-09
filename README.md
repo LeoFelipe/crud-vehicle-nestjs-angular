@@ -7,7 +7,7 @@
 
 ## 🎯 Sobre este projeto
 
-Este projeto é um sistema completo de **CRUD (Create, Read, Update, Delete) de veículos**, desenvolvido como parte de um teste técnico. Ele engloba um backend robusto com **NestJS** e um frontend reativo com **Angular**, ambos containerizados com Docker e orquestrados via Docker Compose para um ambiente de desenvolvimento simplificado.
+Este projeto é um sistema completo de **CRUD (Create, Read, Update, Delete) de veículos**, desenvolvido como parte demonstração de conhecimento em NodeJs e Angular. Ele engloba um backend robusto com **NestJS** e um frontend reativo com **Angular**, ambos containerizados com Docker e orquestrados via Docker Compose para um ambiente de desenvolvimento simplificado.
 
 ### ✨ Funcionalidades
 
